@@ -202,7 +202,7 @@ export default function JadwalSholatPage() {
                             <footer className="mt-8 text-center pb-10">
                                 <div className="inline-block px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em]">
-                                        {dataSholat?.bulan_nama} {dataSholat?.tahun} • AL-QUR'AN KU
+                                        {tglHariIni} {dataSholat?.bulan_nama} {dataSholat?.tahun} • AL-QUR'AN KU
                                     </p>
                                 </div>
                             </footer>
