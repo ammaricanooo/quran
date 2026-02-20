@@ -145,7 +145,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                 <span>{data.jumlahAyat} Ayat</span>
               </div>
               {/* Ornament Kaligrafi background */}
-              <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-arabic select-none">{data.nama}
+              <div className="font-ayat absolute -right-10 -bottom-10 opacity-10 text-9xl font-arabic select-none">{data.nama}
               </div>
             </div>
           </div>
@@ -153,12 +153,12 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
           {/* Qari Selection */}
           <div className="mb-10 overflow-hidden">
             <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-[0.2em]">Pilih Murottal</h3>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide p-4 -m-4">
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
               {LIST_QARI.map((qari) => (
                 <button
                   key={qari.id}
                   onClick={() => setSelectedQari(qari.id)}
-                  className={`flex flex-col items-center gap-3 p-4 min-w-35 rounded-3xl transition-all border md:w-full ${selectedQari === qari.id ? "bg-white text-bg-primary border-white scale-105" : "bg-white/5 border-white/10"
+                  className={`flex flex-col items-center gap-3 p-4 min-w-35 rounded-3xl transition-all border md:w-full ${selectedQari === qari.id ? "bg-white text-bg-primary border-white" : "bg-white/5 border-white/10"
                     }`}
                 >
                   <img src={qari.img} alt={qari.name} className="w-16 h-16 object-cover rounded-full shadow-lg" />

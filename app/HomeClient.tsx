@@ -76,7 +76,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
 
                     {/* Filter Slider - Scrollable di mobile, rapi di desktop */}
                     <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                        <div className="flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                        <div className="flex gap-2 justify-between sm:justify-start bg-white/5 p-1.5 rounded-2xl border border-white/5 w-full sm:w-fit">
                             {filters.map((f) => (
                                 <button
                                     key={f}
