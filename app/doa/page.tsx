@@ -40,40 +40,39 @@ export default function DoaPage() {
     return (
         <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden">
             {/* --- FIXED HEADER AREA --- */}
-            <div className="flex-none p-6 z-20">
-            <header className="max-w-4xl mx-auto w-full">
-                <div className="flex items-center justify-between mb-6">
-                    <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <div className="bg-white/5 px-4 py-1.5 rounded-2xl border border-white/5 flex items-center gap-3">
-                        <p className="text-[10px] font-black text-primary-2 uppercase tracking-widest">Total</p>
-                        <p className="text-sm font-mono font-black">{doaList.length} Doa</p>
+            <div className="flex-none p-4 md:px-8 border-b border-white/5 z-20">
+                <header className="mx-auto w-full flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
+                                <ArrowLeft size={18} />
+                            </Link>
+                            <h1 className="text-xl md:text-2xl font-black tracking-tighter">
+                                Daftar <span className="text-primary">Doa</span>
+                            </h1>
+                        </div>
+                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-primary uppercase">
+                            {doaList.length} Doa
+                        </div>
                     </div>
-                </div>
-
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <h1 className="text-3xl font-black tracking-tighter leading-none">
-                        Kumpulan<span className="text-primary-2"> Doa</span>
-                    </h1>
-                    
-                    {/* Search Bar di Header */}
-                    <div className="relative w-full md:w-72">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Cari doa..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-11 pr-4 focus:outline-none focus:ring-1 focus:ring-primary-2/50 transition text-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </div>
-            </header>
-        </div>
+                </header>
+            </div>
 
             {/* --- SCROLLABLE CONTENT AREA --- */}
             <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
+                <div>
+                        <div className="group w-4xl flex md:justify-end mb-4 mx-auto">
+                            <div className="relative w-full md:w-64">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                                <input
+                                    type="text"
+                                    placeholder="Cari nama doa..."
+                                    className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
                 <div className="max-w-4xl mx-auto space-y-6 pb-20">
                     {filteredDoa.map((doa) => (
                         <div
@@ -132,6 +131,7 @@ export default function DoaPage() {
                             <p className="font-bold tracking-tighter">Doa tidak ditemukan</p>
                         </div>
                     )}
+                </div>
                 </div>
             </div>
         </main>

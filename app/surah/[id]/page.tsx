@@ -235,7 +235,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                   <span>{data.jumlahAyat} Ayat</span>
                 </div>
                 {/* Ornament Kaligrafi background */}
-                <div className="font-ayat absolute -right-10 -bottom-10 opacity-10 text-9xl font-arabic select-none">{data.nama}
+                <div className="font-ayat absolute -right-10 -bottom-10 opacity-10 text-9xl font-ayat select-none">{data.nama}
                 </div>
               </div>
             </div>
@@ -261,7 +261,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
             {/* List Ayat */}
             <div className="space-y-6">
               {id !== "1" && id !== "9" && (
-                <div className="text-center py-10 text-4xl font-arabic opacity-80 leading-loose text-white/90">
+                <div className="text-center py-10 text-4xl font-ayat opacity-80 leading-loose text-white/90">
                   بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
                 </div>
               )}

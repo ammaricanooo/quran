@@ -82,7 +82,7 @@ export default function DoaPage() {
 
                             <h3 className="text-xl font-bold mb-6 text-white/90">{doa.nama}</h3>
 
-                            <p className="text-3xl text-right font-arabic leading-16 mb-6 antialiased" dir="rtl">
+                            <p className="text-3xl text-right font-ayat leading-16 mb-6 antialiased" dir="rtl">
                                 {doa.ar}
                             </p>
 

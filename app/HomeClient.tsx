@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Compass, Clock, BookOpen } from "lucide-react";
+import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote } from "lucide-react";
 import { Surah } from "./page";
 
 export default function HomeClient({ surahs }: { surahs: Surah[] }) {
@@ -13,6 +13,9 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
         { name: "Doa", icon: <BookOpen size={20} />, color: "bg-blue-500", href: "/doa" },
         { name: "Kiblat", icon: <Compass size={20} />, color: "bg-orange-500", href: "https://qiblafinder.withgoogle.com/" },
         { name: "Jadwal", icon: <Clock size={20} />, color: "bg-emerald-500", href: "/jadwal" },
+        { name: "Juz", icon: <Layers size={20} />, color: "bg-purple-500", href: "/juz" },
+        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-teal-500", href: "/dzikir" },
+        { name: "Hadits", icon: <Quote size={20} />, color: "bg-amber-500", href: "/hadits" },
     ];
 
     const filters = ["Semua", "Mekah", "Madinah"];
@@ -82,8 +85,8 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                                     key={f}
                                     onClick={() => setActiveFilter(f)}
                                     className={`px-5 py-2 rounded-2xl text-[11px] font-bold uppercase tracking-wider transition-all shrink-0 ${activeFilter === f
-                                            ? "bg-white text-bg-primary shadow-lg shadow-white/10 scale-100"
-                                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                                        ? "bg-white text-bg-primary shadow-lg shadow-white/10 scale-100"
+                                        : "text-gray-400 hover:text-white hover:bg-white/5"
                                         }`}
                                 >
                                     {f}
