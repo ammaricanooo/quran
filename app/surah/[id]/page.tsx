@@ -235,7 +235,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                   <span>{data.jumlahAyat} Ayat</span>
                 </div>
                 {/* Ornament Kaligrafi background */}
-                <div className="font-ayat absolute -right-10 -bottom-10 opacity-10 text-9xl font-ayat select-none">{data.nama}
+                <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-ayat select-none">{data.nama}
                 </div>
               </div>
             </div>
