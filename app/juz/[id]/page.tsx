@@ -48,14 +48,14 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
         const startSurah = parseInt(dataJuz.surah_id_start);
         const endSurah = parseInt(dataJuz.surah_id_end);
-        
+
         // Fetch semua surah & tafsir yang terlibat
-        const surahNumbers = Array.from({length: endSurah - startSurah + 1}, (_, i) => startSurah + i);
-        
-        const surahPromises = surahNumbers.map(num => 
+        const surahNumbers = Array.from({ length: endSurah - startSurah + 1 }, (_, i) => startSurah + i);
+
+        const surahPromises = surahNumbers.map(num =>
           fetch(`https://equran.id/api/v2/surat/${num}`).then(res => res.json())
         );
-        const tafsirPromises = surahNumbers.map(num => 
+        const tafsirPromises = surahNumbers.map(num =>
           fetch(`https://equran.id/api/v2/tafsir/${num}`).then(res => res.json())
         );
 
@@ -174,7 +174,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
         {/* CONTENT AREA */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            
+
             {/* QARI SELECTION */}
             <div className="mb-10">
               <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pilih Murottal</h3>
@@ -199,7 +199,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                         <p className="text-[10px] font-black text-primary-2 uppercase tracking-[0.3em] mb-2">Memasuki Surah</p>
                         <h2 className="text-3xl font-black italic">{item.surahName}</h2>
                         <div className="font-ayat absolute right-0 bottom-0 opacity-5 text-7xl select-none">
-                            {item.surahNameArab}
+                          {item.surahNameArab}
                         </div>
                       </div>
                     )}
@@ -225,7 +225,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                         </div>
 
                         <div className="space-y-2 border-l-2 border-primary/30 pl-4 py-1">
-                          <p className="font-bold italic tracking-wide text-primary-2/80">{item.teksLatin}</p>
+                          <p className="font-bold italic tracking-wide">{item.teksLatin}</p>
                           <p className="text-gray-300 text-sm leading-relaxed">{item.teksIndonesia}</p>
                         </div>
 

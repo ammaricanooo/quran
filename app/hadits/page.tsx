@@ -89,7 +89,7 @@ export default function HaditsPage() {
                                 {/* Arab */}
                                 <div className="relative mb-8">
                                     <Quote className="absolute -top-4 -left-2 text-primary-2/10 w-12 h-12 rotate-180" />
-                                    <p className="text-2xl md:text-3xl text-right font-arabic leading-loose text-white/90" dir="rtl">
+                                    <p className="text-2xl md:text-3xl text-right font-ayat leading-loose text-white/90" dir="rtl">
                                         {item.arab}
                                     </p>
                                 </div>
