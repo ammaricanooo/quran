@@ -314,14 +314,23 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         {/* STICKY HEADER AREA */}
         <div className="sticky top-0 z-20 p-6 transition-all duration-300">
           <header className="max-w-4xl mx-auto w-full">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
                   <ArrowLeft size={20} />
                 </Link>
                 <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
-                  <ScrollText size={16} className="text-primary-2" /> Daftar Surah
+                  <ScrollText size={20} className="text-primary-2" />
+                  <span className="hidden md:flex">Daftar Surah</span>
                 </button>
+                <div className="">
+                  <h1 className="md:text-3xl font-black tracking-tighter leading-none">
+                    Surah<span className="text-primary-2"> {data.namaLatin}</span>
+                  </h1>
+                  <div className="text-right hidden md:block">
+                    <p className="text-[10px] tracking-widest leading-none mb-1">{data.arti} | {data.tempatTurun} | {data.jumlahAyat} Ayat</p>
+                  </div>
+                </div>
               </div>
 
               {/* INPUT LONCAT AYAT */}
@@ -332,26 +341,16 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                   min="1"
                   max={data.jumlahAyat}
                   placeholder="..."
-                  className="w-12 bg-transparent text-sm font-bold focus:outline-none text-primary-2"
+                  className="w-6 bg-transparent text-sm font-bold focus:outline-none text-primary-2"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const val = parseInt((e.target as HTMLInputElement).value);
                       if (val > 0 && val <= data.jumlahAyat) {
-                        ayatRefs.current[val - 1]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        ayatRefs.current[val - 1]?.scrollIntoView({ behavior: "smooth", block: "start" });
                       }
                     }
                   }}
                 />
-              </div>
-            </div>
-
-            <div className="flex items-end justify-between">
-              <h1 className="md:text-3xl font-black tracking-tighter leading-none">
-                Surah<span className="text-primary-2"> {data.namaLatin}</span>
-              </h1>
-              <div className="text-right hidden md:block">
-                <p className="text-[10px] font-black text-primary-2 uppercase tracking-widest leading-none mb-1">{data.arti}</p>
-                <p className="text-xs opacity-50 font-bold uppercase tracking-widest">{data.jumlahAyat} Ayat</p>
               </div>
             </div>
           </header>
@@ -413,11 +412,10 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
               )}
 
               {data.ayat.map((item: any, index: number) => {
-                // Cari teks tafsir yang sesuai dengan nomor ayat ini
                 const currentTafsir = tafsirData.find((t) => t.ayat === item.nomorAyat);
                 const isLastRead = lastReadData?.surahNo === data.nomor && lastReadData?.ayatNo === item.nomorAyat;
                 const isCurrentlySaving = savingId === item.nomorAyat;
-                const showSaving = isCurrentlySaving && !isLastRead; // don't show saving text once data has updated
+                const showSaving = isCurrentlySaving && !isLastRead;
 
                 return (
                   <div
@@ -454,18 +452,6 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                         <p className="text-gray-300 text-sm leading-relaxed">{item.teksIndonesia}</p>
                       </div>
 
-                      {/* --- TAFSIR SECTION --- */}
-                      {openTafsirIndex === index && currentTafsir && (
-                        <div className="mt-2 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
-                          <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <BookOpen size={14} /> Tafsir Kemenag
-                          </h4>
-                          <p className="text-sm text-gray-300 leading-loose whitespace-pre-line text-justify">
-                            {currentTafsir.teks}
-                          </p>
-                        </div>
-                      )}
-
                       {/* --- ACTION BUTTONS --- */}
                       <div className="flex items-center gap-2 mt-2 pt-4 border-t border-white/5">
                         <button
@@ -484,37 +470,49 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                           className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
                         >
                           <ExternalLink size={14} />
-                          Share
+                          <span className="hidden md:flex">Share</span>
                         </button>
 
                         <button
                           onClick={() => saveLastRead(item.nomorAyat)}
                           disabled={showSaving}
                           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
-                            ? "bg-primary text-white animate-pulse" // Warna saat proses
+                            ? "bg-primary text-white animate-pulse"
                             : isLastRead
-                              ? "bg-primary text-white scale-95"      // Warna saat sudah tersimpan
+                              ? "bg-primary text-white scale-95"
                               : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary"
                             }`}
                         >
                           {showSaving ? (
                             <>
                               <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                              <span>Menyimpan...</span>
+                              <span className="hidden md:flex">Menyimpan...</span>
                             </>
                           ) : isLastRead ? (
                             <>
                               <BookmarkCheck size={14} fill="currentColor" />
-                              <span>Terakhir Dibaca</span>
+                              <span className="hidden md:flex">Terakhir Dibaca</span>
                             </>
                           ) : (
                             <>
                               <BookmarkCheck size={14} />
-                              <span>Tandai Terakhir Dibaca</span>
+                              <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
                             </>
                           )}
                         </button>
                       </div>
+
+                      {/* --- TAFSIR SECTION --- */}
+                      {openTafsirIndex === index && currentTafsir && (
+                        <div className="mt-2 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                          <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <BookOpen size={14} /> Tafsir Kemenag
+                          </h4>
+                          <p className="text-sm text-gray-300 leading-loose whitespace-pre-line text-justify">
+                            {currentTafsir.teks}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

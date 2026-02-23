@@ -2,7 +2,10 @@
 
 import { useState, useRef, useEffect, use as useHook } from "react";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, Layers } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, Layers, BookmarkCheck } from 'lucide-react';
+import { db, auth } from "@/lib/firebase";
+import { setDoc, doc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -10,6 +13,8 @@ const LIST_QARI = [
   { id: "05", name: "Misyari Rasyid", img: "/rashid.png" },
   { id: "06", name: "Yasser Al-Dosari", img: "/Yasser.png" },
 ];
+
+let cachedBasmalahAudio: { [qariId: string]: string } | null = null;
 
 export default function JuzDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = useHook(params);
@@ -20,6 +25,11 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQari, setSelectedQari] = useState("05");
   const [loading, setLoading] = useState(true);
+
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const [lastReadData, setLastReadData] = useState<any>(null);
+  const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ayatRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -34,6 +44,21 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     fetch("/api/proxy-juz")
       .then((res) => res.json())
       .then((json) => setJuzList(json.data));
+  }, []);
+
+  // Auth: subscribe to user's lastRead
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const userDoc = doc(db, "users", currentUser.uid);
+        const unsubDoc = onSnapshot(userDoc, (docSnap) => {
+          if (docSnap.exists()) setLastReadData(docSnap.data().lastRead);
+        });
+        return () => unsubDoc();
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // 2. Logika Utama "Menjahit" Ayat Juz
@@ -110,8 +135,73 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     try {
       await audioRef.current.play();
       setIsPlaying(true);
-      ayatRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      ayatRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) { console.error(err); }
+  };
+
+  const saveLastRead = async (surahNo: number, ayatNo: number, surahName: string) => {
+    if (!auth.currentUser) {
+      alert("Silakan login terlebih dahulu untuk menyimpan progres!");
+      return;
+    }
+
+    const isAlready = lastReadData?.surahNo === surahNo && lastReadData?.ayatNo === ayatNo;
+    if (isAlready) return;
+
+    setSavingId(ayatNo);
+    try {
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        lastRead: {
+          surahNo,
+          surahName,
+          ayatNo,
+          updatedAt: new Date()
+        }
+      }, { merge: true });
+
+      setLastReadData({ surahNo, surahName, ayatNo, updatedAt: new Date() });
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (err) {
+      console.error("Gagal simpan:", err);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  // fallback clear for stuck saving state
+  useEffect(() => {
+    if (savingId !== null) {
+      const t = setTimeout(() => setSavingId(null), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [savingId]);
+
+  // Basmalah: prepare audio if the first surah in juz needs it
+  useEffect(() => {
+    const firstSurah = juzData?.verses?.[0]?.surahNum;
+    if (!firstSurah) return;
+    if (firstSurah !== 1 && firstSurah !== 9) {
+      if (cachedBasmalahAudio) {
+        setBasmalahAudio(cachedBasmalahAudio);
+      } else {
+        fetch("https://equran.id/api/v2/surat/1")
+          .then(res => res.json())
+          .then(json => {
+            const audioData = json.data.ayat[0].audio;
+            cachedBasmalahAudio = audioData;
+            setBasmalahAudio(audioData);
+          });
+      }
+    }
+  }, [juzData]);
+
+  const playBasmalah = () => {
+    if (!basmalahAudio || !audioRef.current) return;
+    audioRef.current.src = basmalahAudio[selectedQari];
+    audioRef.current.load();
+    audioRef.current.play();
+    const handleEnd = () => { playAudio(0); audioRef.current?.removeEventListener('ended', handleEnd); };
+    audioRef.current.addEventListener('ended', handleEnd);
   };
 
   const handleNextAyat = () => {
@@ -157,7 +247,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
         {/* HEADER AREA */}
         <div className="sticky top-0 z-20 p-6 border-b border-white/5">
           <header className="max-w-4xl mx-auto w-full">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/juz" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition"><ArrowLeft size={20} /></Link>
                 <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
@@ -190,7 +280,22 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
             {/* LIST AYAT */}
             <div className="space-y-6">
+              {juzData.verses?.[0] && juzData.verses[0].surahNum !== 1 && juzData.verses[0].surahNum !== 9 && (
+                <div className="flex flex-col items-center group/basmalah py-10">
+                  <div className="text-4xl font-ayat opacity-80 leading-loose text-white/90 mb-4">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+                  <button
+                    onClick={playBasmalah}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-primary-2/10 hover:bg-primary-2/20 border border-primary-2/20 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-2 transition-all active:scale-95"
+                  >
+                    <Play size={12} fill="currentColor" /> Putar Basmalah
+                  </button>
+                </div>
+              )}
+
               {juzData.verses.map((item: any, index: number) => {
+                const isLastRead = lastReadData?.surahNo === item.surahNum && lastReadData?.ayatNo === item.nomorAyat;
+                const isCurrentlySaving = savingId === item.nomorAyat;
+                const showSaving = isCurrentlySaving && !isLastRead;
                 const isNewSurah = index === 0 || item.surahNum !== juzData.verses[index - 1].surahNum;
                 return (
                   <div key={`${item.surahNum}-${item.nomorAyat}`} ref={(el) => { ayatRefs.current[index] = el }}>
@@ -242,7 +347,35 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                               {openTafsirIndex === index ? <ChevronUp size={14} /> : <BookOpen size={14} />} Tafsir
                             </button>
                             <button onClick={() => handleShare(item)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:text-primary-2 transition">
-                              <ExternalLink size={14} /> Share
+                              <ExternalLink size={14} /> <span className="hidden md:flex">Share</span>
+                            </button>
+
+                            <button
+                              onClick={() => saveLastRead(item.surahNum, item.nomorAyat, item.surahName)}
+                              disabled={showSaving}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
+                                ? "bg-amber-500 text-white animate-pulse"
+                                : isLastRead
+                                  ? "bg-primary text-white scale-95"
+                                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary"
+                                }`}
+                            >
+                              {showSaving ? (
+                                <>
+                                  <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                                  <span className="hidden md:flex">Menyimpan...</span>
+                                </>
+                              ) : isLastRead ? (
+                                <>
+                                  <BookmarkCheck size={14} fill="currentColor" />
+                                  <span className="hidden md:flex">Terakhir Dibaca</span>
+                                </>
+                              ) : (
+                                <>
+                                  <BookmarkCheck size={14} />
+                                  <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
+                                </>
+                              )}
                             </button>
                           </div>
                           <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{item.surahName} : {item.nomorAyat}</span>

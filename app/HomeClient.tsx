@@ -5,7 +5,7 @@ import Link from "next/link";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
-import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, LogIn, Bookmark, User as UserIcon } from "lucide-react";
+import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, LogIn, LogOut, Bookmark, User as UserIcon } from "lucide-react";
 import { Surah } from "./page";
 
 export default function HomeClient({ surahs }: { surahs: Surah[] }) {
@@ -28,6 +28,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     }, []);
 
     const handleLogin = () => signInWithPopup(auth, googleProvider);
+    const handleLogout = () => auth.signOut();
 
     const menuItems = [
         { name: "Doa", icon: <BookOpen size={20} />, color: "bg-blue-500", href: "/doa" },
@@ -52,13 +53,37 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
             <header className="p-6 md:px-6 md:py-8">
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <p className="text-gray-300 font-medium">Assalamu’alaikum, <span className="hover:underline cursor-pointer">{user ? user.displayName?.split(' ')[0] : ""}</span></p>
+                        <p className="text-gray-300 font-medium flex items-center gap-2">
+                            Assalamu’alaikum,
+                            {user && (
+                                <span className="hover:underline cursor-pointer">
+                                    {user ? user.displayName?.split(' ')[0] : ""}
+                                </span>
+                            )}
+                            {/* login/logout kecil */}
+                            {user ? (
+                                <button
+                                    onClick={handleLogout}
+                                    className="text-xs text-red-400 hover:text-red-500"
+                                >
+                                    <LogOut size={14} />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleLogin}
+                                    className="flex  items-center gap-1 text-xs text-green-400 hover:text-green-500"
+                                >
+                                    Login
+                                    <LogIn size={14} />
+                                </button>
+                            )}
+                        </p>
                         <h1 className="text-4xl font-bold mt-1 tracking-tight">
                             Al-Qur'an Ku
                         </h1>
                     </div>
-                    <div className="opacity-80 p-2 bg-white/5 rounded-2xl">
-                        <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-16" />
+                    <div className="opacity-80 p-2 bg-white/5 rounded-2xl shrink-0">
+                        <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-16 shrink-0" />
                     </div>
                 </div>
 
@@ -79,7 +104,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 </div>
 
                 {/* LAST READ SECTION */}
-                <div className="relative overflow-hidden bg-white/5 p-6 rounded-4xl mb-8 shadow-2xl group cursor-pointer">
+                <div className="relative overflow-hidden bg-white/5 p-6 rounded-4xl shadow-2xl group cursor-pointer">
                     <div className="relative z-10 flex flex-col justify-between h-full">
                         <div className="flex items-center gap-2 mb-4">
                             <Bookmark size={18} fill="white" />
@@ -88,7 +113,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
 
                         {!user ? (
                             <button onClick={handleLogin} className="text-left">
-                                <h3 className="text-xl font-bold mb-1">Belum Login</h3>
+                                <h3 className="text-xl font-bold mb-1">Silakan Login</h3>
                                 <p className="text-xs opacity-70">Login untuk simpan progres bacaanmu</p>
                             </button>
                         ) : lastRead ? (
