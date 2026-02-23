@@ -1,13 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote } from "lucide-react";
+import { auth, db, googleProvider } from "@/lib/firebase";
+import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
+import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, LogIn, Bookmark, User as UserIcon } from "lucide-react";
 import { Surah } from "./page";
 
 export default function HomeClient({ surahs }: { surahs: Surah[] }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [lastRead, setLastRead] = useState<any>(null);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState("Semua");
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
+                    if (doc.exists()) setLastRead(doc.data().lastRead);
+                });
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleLogin = () => signInWithPopup(auth, googleProvider);
 
     const menuItems = [
         { name: "Doa", icon: <BookOpen size={20} />, color: "bg-blue-500", href: "/doa" },
@@ -29,11 +49,13 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     return (
         <div className="overflow-auto flex-1 scrollbar-hide">
             {/* Header Section */}
-            <header className="p-6 md:px-10 md:py-8">
-                <div className="flex justify-between items-center mb-8">
+            <header className="p-6 md:px-6 md:py-8">
+                <div className="flex justify-between items-start mb-8">
                     <div>
-                        <p className="text-gray-300 font-medium">Assalamu’alaikum</p>
-                        <h1 className="text-4xl font-bold mt-1 tracking-tight">Al-Qur'an Ku</h1>
+                        <p className="text-gray-300 font-medium">Assalamu’alaikum, <span className="hover:underline cursor-pointer">{user ? user.displayName?.split(' ')[0] : ""}</span></p>
+                        <h1 className="text-4xl font-bold mt-1 tracking-tight">
+                            Al-Qur'an Ku
+                        </h1>
                     </div>
                     <div className="opacity-80 p-2 bg-white/5 rounded-2xl">
                         <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-16" />
@@ -54,6 +76,31 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                             <span className="text-xs font-bold uppercase tracking-widest">{item.name}</span>
                         </Link>
                     ))}
+                </div>
+
+                {/* LAST READ SECTION */}
+                <div className="relative overflow-hidden bg-white/5 p-6 rounded-4xl mb-8 shadow-2xl group cursor-pointer">
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Bookmark size={18} fill="white" />
+                            <span className="text-xs font-black uppercase tracking-widest">Terakhir Dibaca</span>
+                        </div>
+
+                        {!user ? (
+                            <button onClick={handleLogin} className="text-left">
+                                <h3 className="text-xl font-bold mb-1">Belum Login</h3>
+                                <p className="text-xs opacity-70">Login untuk simpan progres bacaanmu</p>
+                            </button>
+                        ) : lastRead ? (
+                            <Link href={`/surah/${lastRead.surahNo}?fromLastRead=1`} className="text-left">
+                                <h3 className="text-2xl font-bold mb-1">{lastRead.surahName}</h3>
+                                <p className="text-sm opacity-90 italic">Ayat ke-{lastRead.ayatNo}</p>
+                            </Link>
+                        ) : (
+                            <p className="text-sm">Belum ada progres bacaan.</p>
+                        )}
+                    </div>
+                    <BookOpen size={120} className="absolute -right-6 -bottom-6 opacity-20 rotate-12 group-hover:rotate-0 transition-transform duration-500" />
                 </div>
             </header>
 

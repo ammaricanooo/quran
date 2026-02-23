@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, use as useHook } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, BookmarkCheck } from 'lucide-react';
+import { db, auth } from "@/lib/firebase";
+import { setDoc, doc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -10,6 +14,8 @@ const LIST_QARI = [
   { id: "05", name: "Misyari Rasyid", img: "/rashid.png" },
   { id: "06", name: "Yasser Al-Dosari", img: "/Yasser.png" },
 ];
+
+let cachedBasmalahAudio: { [qariId: string]: string } | null = null;
 
 export default function SurahPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrapping params dengan benar untuk Client Component
@@ -31,6 +37,138 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Untuk mobile drawer
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
+
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const [lastReadData, setLastReadData] = useState<any>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const fromLastRead = searchParams.get("fromLastRead");
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Ambil data terakhir dibaca secara real-time
+        const userDoc = doc(db, "users", currentUser.uid);
+        const unsubDoc = onSnapshot(userDoc, (docSnap) => {
+          if (docSnap.exists()) {
+            setLastReadData(docSnap.data().lastRead);
+          }
+        });
+        return () => unsubDoc();
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const saveLastRead = async (ayatNo: number) => {
+    if (!auth.currentUser || !data) {
+      alert("Silakan login terlebih dahulu untuk menyimpan progres!");
+      return;
+    }
+
+    const isAlreadyLastRead = lastReadData?.surahNo === data.nomor && lastReadData?.ayatNo === ayatNo;
+    if (isAlreadyLastRead) {
+      // nothing to do, already last read
+      return;
+    }
+
+    // set loading indicator
+    setSavingId(ayatNo);
+
+    try {
+      await setDoc(doc(db, "users", auth.currentUser.uid), {
+        lastRead: {
+          surahNo: data.nomor,
+          surahName: data.namaLatin,
+          ayatNo: ayatNo,
+          updatedAt: new Date()
+        }
+      }, { merge: true });
+
+      // update local state once backend confirmed
+      setLastReadData({
+        surahNo: data.nomor,
+        surahName: data.namaLatin,
+        ayatNo: ayatNo,
+        updatedAt: new Date()
+      });
+
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (err) {
+      console.error("Gagal simpan:", err);
+    } finally {
+      // always clear loading flag; even if setLastReadData hasn't run or failed
+      setSavingId(null);
+    }
+  };
+
+  // fallback: if the saving state somehow gets stuck we clear it after a few seconds
+  useEffect(() => {
+    if (savingId !== null) {
+      const t = setTimeout(() => setSavingId(null), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [savingId]);
+
+  useEffect(() => {
+    // Jika suratnya bukan Al-Fatihah (1) dan bukan At-Taubah (9), kita siapkan Basmalah
+    if (id !== "1" && id !== "9") {
+      if (cachedBasmalahAudio) {
+        setBasmalahAudio(cachedBasmalahAudio);
+      } else {
+        // Ambil dari ayat 1 surat 1 (Al-Fatihah)
+        fetch("https://equran.id/api/v2/surat/1")
+          .then(res => res.json())
+          .then(json => {
+            const audioData = json.data.ayat[0].audio;
+            cachedBasmalahAudio = audioData; // Simpan di variable luar (cache)
+            setBasmalahAudio(audioData);
+          });
+      }
+    }
+  }, [id]);
+
+  useEffect(() => {
+    // only perform autoscroll when the page was opened via the "last read" link
+    if (
+      fromLastRead &&
+      data &&
+      lastReadData &&
+      lastReadData.surahNo === data.nomor
+    ) {
+      const timer = setTimeout(() => {
+        const targetAyat = lastReadData.ayatNo - 1;
+        ayatRefs.current[targetAyat]?.scrollIntoView({ behavior: "smooth", block: "start" });
+        // clear the query parameter so future navigations don't auto‑scroll again
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("fromLastRead");
+        router.replace(`/surah/${id}${params.toString() ? "?" + params.toString() : ""}`);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [fromLastRead, data, lastReadData, searchParams]);
+
+  // Fungsi khusus untuk putar Basmalah
+  const playBasmalah = () => {
+    if (!basmalahAudio || !audioRef.current) return;
+
+    // Set audio ke basmalah sesuai qari yang dipilih
+    audioRef.current.src = basmalahAudio[selectedQari];
+    audioRef.current.load();
+    audioRef.current.play();
+
+    // Opsional: Setelah Basmalah selesai, otomatis lanjut ke ayat 1
+    const handleBasmalahEnd = () => {
+      playAudio(0); // Putar ayat 1
+      audioRef.current?.removeEventListener('ended', handleBasmalahEnd);
+    };
+    audioRef.current.addEventListener('ended', handleBasmalahEnd);
+  };
 
   useEffect(() => {
     // Fetch daftar surah untuk navigasi
@@ -261,14 +399,25 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
             {/* List Ayat */}
             <div className="space-y-6">
               {id !== "1" && id !== "9" && (
-                <div className="text-center py-10 text-4xl font-ayat opacity-80 leading-loose text-white/90">
-                  بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
+                <div className="flex flex-col items-center group/basmalah py-10">
+                  <div className="text-4xl font-ayat opacity-80 leading-loose text-white/90 mb-4">
+                    بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ
+                  </div>
+                  <button
+                    onClick={playBasmalah}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-primary-2/10 hover:bg-primary-2/20 border border-primary-2/20 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-2 transition-all active:scale-95"
+                  >
+                    <Play size={12} fill="currentColor" /> Putar Basmalah
+                  </button>
                 </div>
               )}
 
               {data.ayat.map((item: any, index: number) => {
                 // Cari teks tafsir yang sesuai dengan nomor ayat ini
                 const currentTafsir = tafsirData.find((t) => t.ayat === item.nomorAyat);
+                const isLastRead = lastReadData?.surahNo === data.nomor && lastReadData?.ayatNo === item.nomorAyat;
+                const isCurrentlySaving = savingId === item.nomorAyat;
+                const showSaving = isCurrentlySaving && !isLastRead; // don't show saving text once data has updated
 
                 return (
                   <div
@@ -336,6 +485,34 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                         >
                           <ExternalLink size={14} />
                           Share
+                        </button>
+
+                        <button
+                          onClick={() => saveLastRead(item.nomorAyat)}
+                          disabled={showSaving}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
+                            ? "bg-primary text-white animate-pulse" // Warna saat proses
+                            : isLastRead
+                              ? "bg-primary text-white scale-95"      // Warna saat sudah tersimpan
+                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary"
+                            }`}
+                        >
+                          {showSaving ? (
+                            <>
+                              <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                              <span>Menyimpan...</span>
+                            </>
+                          ) : isLastRead ? (
+                            <>
+                              <BookmarkCheck size={14} fill="currentColor" />
+                              <span>Terakhir Dibaca</span>
+                            </>
+                          ) : (
+                            <>
+                              <BookmarkCheck size={14} />
+                              <span>Tandai Terakhir Dibaca</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
