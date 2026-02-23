@@ -137,7 +137,7 @@ export default function DzikirPage() {
                                             <button onClick={(e) => { e.stopPropagation(); resetCount(id); }} className="p-2 text-gray-600 hover:text-white"><RotateCcw size={14} /></button>
                                         </div>
 
-                                        <p className="text-2xl text-right font-ayat leading-relaxed mb-4 text-white/90" dir="rtl">{item.arab}</p>
+                                        <p className="text-4xl text-right font-ayat leading-relaxed mb-4 text-white/90" dir="rtl">{item.arab}</p>
                                         <p className="text-xs text-gray-400 italic leading-relaxed border-l border-primary-2/30 pl-3">"{item.indo}"</p>
 
                                         {/* Progress Line */}

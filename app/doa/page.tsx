@@ -51,7 +51,7 @@ export default function DoaPage() {
                                 Daftar <span className="text-primary">Doa</span>
                             </h1>
                         </div>
-                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-primary uppercase">
+                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-sm font-black text-primary uppercase">
                             {doaList.length} Doa
                         </div>
                     </div>
@@ -61,77 +61,77 @@ export default function DoaPage() {
             {/* --- SCROLLABLE CONTENT AREA --- */}
             <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
                 <div>
-                        <div className="group w-4xl flex md:justify-end mb-4 mx-auto">
-                            <div className="relative w-full md:w-64">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                <input
-                                    type="text"
-                                    placeholder="Cari nama doa..."
-                                    className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
+                    <div className="group w-4xl flex md:justify-end mb-4 mx-auto">
+                        <div className="relative w-full md:w-1/2">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                            <input
+                                type="text"
+                                placeholder="Cari nama doa..."
+                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
-                <div className="max-w-4xl mx-auto space-y-6 pb-20">
-                    {filteredDoa.map((doa) => (
-                        <div
-                            key={doa.id}
-                            className="bg-white/5 border border-white/10 rounded-4xl p-6 hover:bg-white/10 transition-all duration-300 shadow-xl"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/30">
-                                    {doa.grup}
-                                </span>
-                                <button
-                                    onClick={() => handleShare(doa)}
-                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-primary-2 transition"
-                                >
-                                    <Share2 size={18} />
-                                </button>
-                            </div>
-
-                            <h3 className="text-xl font-bold mb-6 text-white/90 leading-tight">{doa.nama}</h3>
-
-                            <p className="text-3xl text-right font-ayat leading-16 mb-6 antialiased" dir="rtl">
-                                {doa.ar}
-                            </p>
-
-                            <div className="space-y-4 border-l-2 border-primary/30 pl-4 py-1">
-                                <p className="font-bold italic tracking-wide text-sm">{doa.tr}</p>
-                                <p className="text-gray-300 text-sm leading-relaxed">{doa.idn}</p>
-                            </div>
-
-                            {/* --- TOGGLE KETERANGAN (TENTANG) --- */}
-                            {doa.tentang && (
-                                <div className="mt-4 pt-2">
-                                    {openTentangId === doa.id && (
-                                        <div className="mb-4 p-4 bg-black/20 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
-                                            <p className="text-xs text-gray-400 leading-relaxed italic whitespace-pre-line">
-                                                {doa.tentang}
-                                            </p>
-                                        </div>
-                                    )}
+                    </div>
+                    <div className="max-w-4xl mx-auto space-y-6 pb-20">
+                        {filteredDoa.map((doa) => (
+                            <div
+                                key={doa.id}
+                                className="bg-white/5 border border-white/10 rounded-4xl p-6 hover:bg-white/10 transition-all duration-300 shadow-xl"
+                            >
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/30">
+                                        {doa.grup}
+                                    </span>
                                     <button
-                                        onClick={() => setOpenTentangId(openTentangId === doa.id ? null : doa.id)}
-                                        className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${openTentangId === doa.id ? "text-primary-2" : "text-gray-500 hover:text-white"
-                                            }`}
+                                        onClick={() => handleShare(doa)}
+                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-primary-2 transition"
                                     >
-                                        <BookOpen size={14} />
-                                        {openTentangId === doa.id ? "Tutup Keterangan" : "Lihat Keterangan"}
+                                        <Share2 size={18} />
                                     </button>
                                 </div>
-                            )}
-                        </div>
-                    ))}
 
-                    {filteredDoa.length === 0 && (
-                        <div className="text-center py-20 opacity-40">
-                            <BookOpen size={48} className="mx-auto mb-4" />
-                            <p className="font-bold tracking-tighter">Doa tidak ditemukan</p>
-                        </div>
-                    )}
-                </div>
+                                <h3 className="text-xl font-bold mb-6 text-white/90 leading-tight">{doa.nama}</h3>
+
+                                <p className="text-4xl text-right font-ayat leading-16 mb-6 antialiased" dir="rtl">
+                                    {doa.ar}
+                                </p>
+
+                                <div className="space-y-4 border-l-2 border-primary/30 pl-4 py-1">
+                                    <p className="font-bold italic tracking-wide text-sm">{doa.tr}</p>
+                                    <p className="text-gray-300 text-sm leading-relaxed">{doa.idn}</p>
+                                </div>
+
+                                {/* --- TOGGLE KETERANGAN (TENTANG) --- */}
+                                {doa.tentang && (
+                                    <div className="mt-4 pt-2">
+                                        {openTentangId === doa.id && (
+                                            <div className="mb-4 p-4 bg-black/20 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                                                <p className="text-xs text-gray-400 leading-relaxed italic whitespace-pre-line">
+                                                    {doa.tentang}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => setOpenTentangId(openTentangId === doa.id ? null : doa.id)}
+                                            className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-colors ${openTentangId === doa.id ? "text-primary-2" : "text-gray-500 hover:text-white"
+                                                }`}
+                                        >
+                                            <BookOpen size={14} />
+                                            {openTentangId === doa.id ? "Tutup Keterangan" : "Lihat Keterangan"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+
+                        {filteredDoa.length === 0 && (
+                            <div className="text-center py-20 opacity-40">
+                                <BookOpen size={48} className="mx-auto mb-4" />
+                                <p className="font-bold tracking-tighter">Doa tidak ditemukan</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </main>

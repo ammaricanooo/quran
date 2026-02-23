@@ -157,6 +157,8 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   const playBasmalah = () => {
     if (!basmalahAudio || !audioRef.current) return;
 
+    setCurrentAyatIndex(null);
+
     // Set audio ke basmalah sesuai qari yang dipilih
     audioRef.current.src = basmalahAudio[selectedQari];
     audioRef.current.load();
