@@ -7,6 +7,7 @@ import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, 
 import { db, auth } from "@/lib/firebase";
 import { setDoc, doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import Footer from "@/components/Footer";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -519,6 +520,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                   </div>
                 );
               })}
+              <Footer />
             </div>
           </div>
         </div>

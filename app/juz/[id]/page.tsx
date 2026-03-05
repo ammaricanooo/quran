@@ -6,6 +6,7 @@ import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, 
 import { db, auth } from "@/lib/firebase";
 import { setDoc, doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import Footer from "@/components/Footer";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -263,8 +264,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
         {/* CONTENT AREA */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-
+          <div className="max-w-4xl mx-auto pb-8">
             {/* QARI SELECTION */}
             <div className="mb-10">
               <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pilih Murottal</h3>
@@ -387,6 +387,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
               })}
             </div>
           </div>
+          <Footer />
         </div>
 
         <audio ref={audioRef} onEnded={handleNextAyat} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />

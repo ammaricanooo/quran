@@ -7,6 +7,7 @@ import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, LogIn, LogOut, Bookmark, User as UserIcon } from "lucide-react";
 import { Surah } from "./page";
+import Footer from "@/components/Footer";
 
 export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     const [user, setUser] = useState<User | null>(null);
@@ -50,7 +51,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     return (
         <div className="overflow-auto flex-1 scrollbar-hide">
             {/* Header Section */}
-            <header className="p-6 md:px-6 md:py-8">
+            <header className="p-4 md:px-8 md:py-8">
                 <div className="flex justify-between items-start mb-8">
                     <div>
                         <p className="text-gray-300 font-medium flex items-center gap-2">
@@ -129,7 +130,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 </div>
             </header>
 
-            <div className="px-6 pb-4 space-y-6 max-w-7xl mx-auto w-full">
+            <div className="px-4 md:px-8 pb-4 space-y-6 max-w-7xl mx-auto w-full">
                 {/* Search Bar - Dibuat sedikit lebih lebar/fokus */}
                 <div className="relative group">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={20} />
@@ -170,7 +171,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
             </div>
 
             {/* Grid Surah */}
-            <div className="px-6 pb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+            <div className="px-4 md:px-8 pb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                 {filteredSurahs.map((surah) => (
                     <Link
                         key={surah.nomor}
@@ -216,6 +217,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                     <p className="font-medium">Surah "{searchQuery}" tidak ditemukan</p>
                 </div>
             )}
+            <Footer />
         </div>
     );
 }

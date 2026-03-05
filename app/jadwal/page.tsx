@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Clock, Info } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export default function JadwalSholatPage() {
     const [dataSholat, setDataSholat] = useState<any>(null);
@@ -115,7 +116,7 @@ export default function JadwalSholatPage() {
 
     return (
         <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex justify-center p-6">
-            <div className="w-full h-full max-w-4xl flex flex-col overflow-hidden">
+            <div className="max-w-4xl w-full h-full flex flex-col overflow-hidden mx-auto">
 
                 {/* Header & Jam: Layout Stacked agar seimbang */}
                 <header className="pb-6 flex flex-col">
@@ -208,6 +209,7 @@ export default function JadwalSholatPage() {
                             </footer>
                         </div>
                     )}
+                    <Footer />
                 </div>
             </div>
         </main>

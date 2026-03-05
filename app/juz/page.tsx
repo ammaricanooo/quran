@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Layers, BookOpen } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export default function JuzListPage() {
     const [juzList, setJuzList] = useState<any[]>([]);
@@ -27,7 +28,7 @@ export default function JuzListPage() {
         <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden">
             {/* Header Fixed */}
             <div className="flex-none p-4 md:px-8 border-b border-white/5 z-20">
-                <header className="mx-auto w-full flex flex-col gap-4">
+                <header className="max-w-4xl mx-auto w-full flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
@@ -54,7 +55,7 @@ export default function JuzListPage() {
                     </div>
                 ) : (
                     <div>
-                        <div className="group w-full flex md:justify-end mb-4">
+                        <div className="group max-w-4xl w-full flex md:justify-end mb-4 mx-auto">
                             <div className="relative w-full md:w-64">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                                 <input
@@ -98,6 +99,7 @@ export default function JuzListPage() {
                     </div>
                 )}
 
+<Footer />
                 {!loading && filteredJuz.length === 0 && (
                     <div className="text-center py-20 opacity-30">
                         <Layers size={48} className="mx-auto mb-4" />

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Share2, ArrowLeft, BookOpen, Copy, Check } from "lucide-react";
+import Footer from "@/components/Footer";
 
 export default function DoaPage() {
     const [doaList, setDoaList] = useState<any[]>([]);
@@ -59,9 +60,8 @@ export default function DoaPage() {
             </div>
 
             {/* --- SCROLLABLE CONTENT AREA --- */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide p-6">
-                <div>
-                    <div className="group w-4xl flex md:justify-end mb-4 mx-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-hide p-4 md:p-8">
+                    <div className="group max-w-4xl flex md:justify-end mb-4 mx-auto">
                         <div className="relative w-full md:w-1/2">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                             <input
@@ -131,9 +131,9 @@ export default function DoaPage() {
                                 <p className="font-bold tracking-tighter">Doa tidak ditemukan</p>
                             </div>
                         )}
+                        <Footer />
                     </div>
                 </div>
-            </div>
         </main>
     );
 }
