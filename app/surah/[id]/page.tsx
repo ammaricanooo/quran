@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, use as useHook } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, BookmarkCheck } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, BookmarkCheck, X } from 'lucide-react';
 import { db, auth } from "@/lib/firebase";
 import { setDoc, doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -276,7 +276,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-linear-to-t from-bg-primary to-bg-primary-2 border-r border-white/5 text-white transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black tracking-tighter">Daftar <span className="text-primary-2">Surah</span></h2>
+            <h2 className="text-xl font-black ">Daftar <span className="text-primary-2">Surah</span></h2>
             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 bg-white/5 rounded-xl"><ChevronUp className="-rotate-90" size={18} /></button>
           </div>
           <div className="relative group mb-4">
@@ -316,7 +316,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
         {/* STICKY HEADER AREA */}
         <div className="sticky top-0 z-20 p-6 transition-all duration-300">
-          <header className="max-w-4xl mx-auto w-full">
+          <header className="max-w-5xl mx-auto w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
@@ -327,7 +327,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                   <span className="hidden md:flex">Daftar Surah</span>
                 </button>
                 <div className="">
-                  <h1 className="md:text-3xl font-black tracking-tighter leading-none">
+                  <h1 className="md:text-3xl font-black  leading-none">
                     Surah<span className="text-primary-2"> {data.namaLatin}</span>
                   </h1>
                   <div className="text-right hidden md:block">
@@ -361,7 +361,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
 
         {/* SCROLLABLE CONTENT AREA */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             {/* Card Info */}
             {/* DATA SINGKAT SURAT (Card Info) */}
             <div className="relative overflow-hidden bg-linear-to-br from-primary to-secondary p-8 rounded-4xl mb-10 shadow-2xl">
@@ -537,10 +537,10 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         {/* Floating Player - Penempatan Responsif */}
         {currentAyatIndex !== null && (
           <div className="fixed bottom-6 left-4 right-4 lg:left-80 lg:right-8 z-30 transition-all pointer-events-none">
-            <div className="max-w-md mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 pointer-events-auto">
+            <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 pointer-events-auto">
               <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-primary-2 font-black uppercase tracking-tighter">Ayat {data.ayat[currentAyatIndex].nomorAyat}</p>
+                <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {data.ayat[currentAyatIndex].nomorAyat}</p>
                 <p className="text-sm font-bold truncate">{data.namaLatin}</p>
               </div>
               <button
@@ -548,6 +548,15 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                 className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
               >
                 {isPlaying ? <Pause size={20} /> : <Play size={20} fill="currentColor" />}
+              </button>
+              <button
+                onClick={() => {
+                  audioRef.current?.pause();
+                  setCurrentAyatIndex(null);
+                }}
+                className="w-12 h-12 bg-white/10 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
+              >
+                <X size={20} />
               </button>
             </div>
           </div>

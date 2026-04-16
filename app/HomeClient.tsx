@@ -32,15 +32,16 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     const handleLogout = () => auth.signOut();
 
     const menuItems = [
-        { name: "Doa", icon: <BookOpen size={20} />, color: "bg-blue-500", href: "/doa" },
-        { name: "Kiblat", icon: <Compass size={20} />, color: "bg-orange-500", href: "https://qiblafinder.withgoogle.com/" },
-        { name: "Jadwal", icon: <Clock size={20} />, color: "bg-emerald-500", href: "/jadwal" },
-        { name: "Juz", icon: <Layers size={20} />, color: "bg-purple-500", href: "/juz" },
-        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-teal-500", href: "/dzikir" },
-        { name: "Hadits", icon: <Quote size={20} />, color: "bg-amber-500", href: "/hadits" },
+        { name: "Doa", icon: <BookOpen size={20} />, color: "bg-white/5", href: "/doa" },
+        { name: "Kiblat", icon: <Compass size={20} />, color: "bg-white/5", href: "https://qiblafinder.withgoogle.com/" },
+        { name: "Jadwal", icon: <Clock size={20} />, color: "bg-white/5", href: "/jadwal" },
+        { name: "Juz", icon: <Layers size={20} />, color: "bg-white/5", href: "/juz" },
+        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-white/5", href: "/dzikir" },
+        { name: "Hadits", icon: <Quote size={20} />, color: "bg-white/5", href: "/hadits" },
     ];
 
     const filters = ["Semua", "Mekah", "Madinah"];
+    const activeIndex = filters.indexOf(activeFilter);
 
     const filteredSurahs = surahs.filter((s) => {
         const matchSearch = s.namaLatin.toLowerCase().includes(searchQuery.toLowerCase());
@@ -49,9 +50,9 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     });
 
     return (
-        <div className="overflow-auto flex-1 scrollbar-hide">
+        <div className="px-4 md:px-8 overflow-auto flex-1 scrollbar-hide">
             {/* Header Section */}
-            <header className="p-4 md:px-8 md:py-8">
+            <header className="py-8">
                 <div className="flex justify-between items-start mb-8">
                     <div>
                         <p className="text-gray-300 font-medium flex items-center gap-2">
@@ -79,12 +80,12 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                                 </button>
                             )}
                         </p>
-                        <h1 className="text-4xl font-bold mt-1 tracking-tight">
+                        <h1 className="text-4xl font-bold mt-1 ">
                             Al-Qur'an Ku
                         </h1>
                     </div>
                     <div className="opacity-80 p-2 bg-white/5 rounded-2xl shrink-0">
-                        <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-16 shrink-0" />
+                        <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-16 md:w-20 shrink-0" />
                     </div>
                 </div>
 
@@ -130,7 +131,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 </div>
             </header>
 
-            <div className="px-4 md:px-8 pb-4 space-y-6 max-w-7xl mx-auto w-full">
+            <div className="pt-4 pb-4 space-y-6 mx-auto w-full">
                 {/* Search Bar - Dibuat sedikit lebih lebar/fokus */}
                 <div className="relative group">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={20} />
@@ -146,32 +147,48 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 {/* Header Section: Judul & Filter Slider */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="relative">
-                        <h2 className="text-2xl font-black text-white tracking-tight">Daftar Surah</h2>
+                        <h2 className="text-2xl font-black text-white ">Daftar Surah</h2>
                         <div className="absolute -bottom-1 left-0 w-8 h-1 bg-primary-2 rounded-full" /> {/* Aksen garis bawah */}
                     </div>
 
                     {/* Filter Slider - Scrollable di mobile, rapi di desktop */}
-                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                        <div className="flex gap-2 justify-between sm:justify-start bg-white/5 p-1.5 rounded-2xl border border-white/5 w-full sm:w-fit">
-                            {filters.map((f) => (
-                                <button
-                                    key={f}
-                                    onClick={() => setActiveFilter(f)}
-                                    className={`px-5 py-2 rounded-2xl text-[11px] font-bold uppercase tracking-wider transition-all shrink-0 ${activeFilter === f
-                                        ? "bg-white text-bg-primary shadow-lg shadow-white/10 scale-100"
-                                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                                        }`}
-                                >
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    {/* Filter Slider Container */}
+<div className="flex overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+    {/* Container utama tanpa gap agar kalkulasi persentase akurat */}
+    <div className="relative flex bg-white/5 p-1 rounded-2xl border border-white/5 min-w-[280px]">
+        
+        {/* INDICATOR BOX (The Slider) */}
+        <div 
+            className="absolute top-1 bottom-1 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] bg-white rounded-xl shadow-md"
+            style={{
+                width: `${100 / filters.length}%`,
+                // Kita kurangi sedikit dari total lebar agar ada jarak (margin) dari border
+                // Dan kalkulasi geser disesuaikan agar tetap presisi di tengah
+                left: 0,
+                transform: `translateX(${activeIndex * 100}%) scale(0.92)`, 
+            }}
+        />
+
+        {/* Tombol Filter */}
+        {filters.map((f) => (
+            <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                // w-full agar membagi rata ruang yang tersedia
+                className={`relative z-10 flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider transition-colors duration-500 ${
+                    activeFilter === f ? "text-bg-primary" : "text-gray-400 hover:text-white"
+                }`}
+            >
+                {f}
+            </button>
+        ))}
+    </div>
+</div>
                 </div>
             </div>
 
             {/* Grid Surah */}
-            <div className="px-4 md:px-8 pb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+            <div className="pb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                 {filteredSurahs.map((surah) => (
                     <Link
                         key={surah.nomor}
@@ -187,7 +204,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
 
                             {/* Info */}
                             <div className="flex flex-col">
-                                <span className="text-lg font-bold group-hover:text-primary-2 transition-colors">
+                                <span className="text-lg font-bold transition-colors">
                                     {surah.namaLatin}
                                 </span>
                                 <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
@@ -202,7 +219,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                                 className={`font-surah-icon icon-${surah.nomor} text-4xl text-white/30 group-hover:text-white transition-all duration-500`}
                                 data-icon={String.fromCharCode(0xE800 + surah.nomor)}
                             ></i>
-                            <span className="text-[9px] text-primary-2 font-black uppercase tracking-tighter">
+                            <span className="text-[9px] text-primary-2 font-black uppercase ">
                                 {surah.jumlahAyat} Ayat
                             </span>
                         </div>

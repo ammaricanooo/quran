@@ -228,7 +228,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-linear-to-t from-bg-primary to-bg-primary-2 border-r border-white/5 text-white transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex flex-col h-full p-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black tracking-tighter">Daftar <span className="text-primary-2">Juz</span></h2>
+            <h2 className="text-xl font-black ">Daftar <span className="text-primary-2">Juz</span></h2>
             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 bg-white/5 rounded-xl"><ChevronUp className="-rotate-90" size={18} /></button>
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2">
@@ -247,7 +247,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
         {/* HEADER AREA */}
         <div className="sticky top-0 z-20 p-6 border-b border-white/5">
-          <header className="max-w-4xl mx-auto w-full">
+          <header className="max-w-5xl mx-auto w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/juz" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition"><ArrowLeft size={20} /></Link>
@@ -256,7 +256,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
               <div className="text-right">
-                <h1 className="md:text-3xl font-black tracking-tighter">Juz <span className="text-primary-2">{juzId}</span></h1>
+                <h1 className="md:text-3xl font-black ">Juz <span className="text-primary-2">{juzId}</span></h1>
               </div>
             </div>
           </header>
@@ -264,7 +264,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
         {/* CONTENT AREA */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-8">
-          <div className="max-w-4xl mx-auto pb-8">
+          <div className="max-w-5xl mx-auto pb-8">
             {/* QARI SELECTION */}
             <div className="mb-10">
               <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pilih Murottal</h3>
@@ -398,7 +398,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
             <div className="max-w-md mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 pointer-events-auto">
               <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-primary-2 font-black uppercase tracking-tighter">Ayat {juzData.verses[currentAyatIndex].nomorAyat}</p>
+                <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {juzData.verses[currentAyatIndex].nomorAyat}</p>
                 <p className="text-sm font-bold truncate">{juzData.verses[currentAyatIndex].surahName}</p>
               </div>
               <button onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()} className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center transition shadow-lg shrink-0">

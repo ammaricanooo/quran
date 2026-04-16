@@ -2,16 +2,16 @@ import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagra
 
 export default function Footer() {
     const menuItems = [
-        { name: "Doa", icon: <BookOpen size={20} />, color: "bg-blue-500", href: "/doa" },
-        { name: "Kiblat", icon: <Compass size={20} />, color: "bg-orange-500", href: "https://qiblafinder.withgoogle.com/" },
-        { name: "Jadwal", icon: <Clock size={20} />, color: "bg-emerald-500", href: "/jadwal" },
-        { name: "Juz", icon: <Layers size={20} />, color: "bg-purple-500", href: "/juz" },
-        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-teal-500", href: "/dzikir" },
-        { name: "Hadits", icon: <Quote size={20} />, color: "bg-amber-500", href: "/hadits" },
+        { name: "Doa", icon: <BookOpen size={20} />, color: "bg-white/5", href: "/doa" },
+        { name: "Kiblat", icon: <Compass size={20} />, color: "bg-white/5", href: "https://qiblafinder.withgoogle.com/" },
+        { name: "Jadwal", icon: <Clock size={20} />, color: "bg-white/5", href: "/jadwal" },
+        { name: "Juz", icon: <Layers size={20} />, color: "bg-white/5", href: "/juz" },
+        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-white/5", href: "/dzikir" },
+        { name: "Hadits", icon: <Quote size={20} />, color: "bg-white/5", href: "/hadits" },
     ];
     return (
         <footer className="py-8 border-t border-white/10">
-            <div className="mx-autow-full p-4 py-6 lg:py-8">
+            <div className="mx-autow-full py-6 lg:py-8">
                 <div className="md:flex md:justify-between">
                     <div className="mb-6 md:mb-0 max-w-sm">
                         <a href="/" className="flex items-center">
