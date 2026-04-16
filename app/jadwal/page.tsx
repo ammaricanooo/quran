@@ -474,14 +474,9 @@ export default function JadwalSholatPage() {
                                     })}
                                 </div>
 
-                                <div className="bg-white/5 border border-white/10 rounded-3xl p-4">
-
-                                    <p className="text-xs font-black mb-3 tracking-widest">
-                                        Kalender Hijriah Bulan Ini
-                                    </p>
-
-                                    <div className="rounded-2xl overflow-hidden bg-white/5">
-
+                                <div className="overflow-x-auto custom-scroll">
+                                    <div className="min-w-220">
+<p className="font-black mb-3 tracking-widest"> Kalender Hijriah Bulan Ini </p>
                                         {/* Header hari */}
                                         <div className="grid grid-cols-7 text-[10px] text-white/50 font-bold text-center py-2 border-b border-b-white/10">
                                             <div>Ahad</div>
@@ -509,7 +504,7 @@ export default function JadwalSholatPage() {
                                                     <div
                                                         key={idx}
                                                         className={`p-3 text-center text-[10px] font-bold rounded-xl transition
-                        ${isToday
+            ${isToday
                                                                 ? "bg-linear-to-br from-primary to-primary-2 border-transparent shadow-2xl shadow-primary/30 text-white"
                                                                 : "text-white/70"
                                                             }`}
@@ -529,6 +524,7 @@ export default function JadwalSholatPage() {
                                                 );
                                             })}
                                         </div>
+
                                     </div>
                                 </div>
                             </div>

@@ -106,3 +106,19 @@ input[type="number"]::-webkit-inner-spin-button {
     transform: 'translateX(-1000px)'
   }
 }
+
+/* Scrollbar horizontal & vertical custom */
+.custom-scroll::-webkit-scrollbar {
+  height: 3px; /* horizontal scrollbar */
+  width: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.2); /* biru */
+  border-radius: 99px;
+}

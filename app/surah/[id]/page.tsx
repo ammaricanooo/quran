@@ -383,7 +383,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
             {/* Qari Selection */}
             <div className="mb-10 overflow-hidden">
               <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-[0.2em]">Pilih Murottal</h3>
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 overflow-x-auto custom-scroll pb-4">
                 {LIST_QARI.map((qari) => (
                   <button
                     key={qari.id}
