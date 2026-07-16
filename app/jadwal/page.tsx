@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Clock, Info, CloudSun, Sunset, MoonStar, Sun, BookOpen, Compass, Layers, Wind, Quote, ChevronUp } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Info, CloudSun, Sunset, MoonStar, Sun } from "lucide-react";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+import { SkeletonJadwal } from "@/components/Skeleton";
 
 const DynamicDesertBg = ({ timeOfDay }: { timeOfDay: string }) => {
     // Definisi warna berdasarkan waktu
@@ -101,18 +103,8 @@ export default function JadwalSholatPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [hijriDate, setHijriDate] = useState("");
     const [hijriCalendar, setHijriCalendar] = useState<any[]>([]);
-
-    const menuItems = [
-        { name: "Doa", icon: <BookOpen size={20} />, color: "bg-white/5", href: "/doa" },
-        { name: "Kiblat", icon: <Compass size={20} />, color: "bg-white/5", href: "https://qiblafinder.withgoogle.com/" },
-        { name: "Jadwal", icon: <Clock size={20} />, color: "bg-white/5", href: "/jadwal" },
-        { name: "Juz", icon: <Layers size={20} />, color: "bg-white/5", href: "/juz" },
-        { name: "Dzikir", icon: <Wind size={20} />, color: "bg-white/5", href: "/dzikir" },
-        { name: "Hadits", icon: <Quote size={20} />, color: "bg-white/5", href: "/hadits" },
-    ];
 
     // 1. Update Jam Real-time
     useEffect(() => {
@@ -332,70 +324,84 @@ export default function JadwalSholatPage() {
     };
     const nextSholat = getNextSholat();
 
+    // Logika mencari shalat yang sedang aktif (30 menit pertama sejak masuk waktu)
+    const getActiveSholat = () => {
+        if (!hariIni) return null;
+
+        const nowRaw = currentTime.getHours() * 60 + currentTime.getMinutes();
+        const maghrib = getMinutes(hariIni.maghrib);
+
+        let now = nowRaw;
+        if (now < maghrib) {
+            now += 24 * 60;
+        }
+
+        let candidates: any[] = [];
+
+        for (const sholat of daftarWaktu) {
+            if (!sholat.time) continue;
+
+            let [h, m] = sholat.time.split(":").map(Number);
+            let time = h * 60 + m;
+
+            if (time < maghrib) {
+                time += 24 * 60;
+            }
+
+            candidates.push({
+                name: sholat.name,
+                time,
+            });
+        }
+
+        candidates.sort((a, b) => a.time - b.time);
+
+        const active = [...candidates].reverse().find(c => now >= c.time && now < c.time + 30);
+        return active ? { name: active.name } : null;
+    };
+    const activeSholat = getActiveSholat();
+
     if (loading) return (
-        <div className="h-screen bg-bg-primary flex flex-col items-center justify-center text-white">
-            <div className="w-12 h-12 border-4 border-primary-2 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-sm opacity-70 italic">Mendeteksi lokasi...</p>
-        </div>
+        <>
+            <Navbar />
+            <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
+                <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
+                    <div className="max-w-5xl mx-auto flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-white/8 rounded-xl animate-pulse" />
+                            <div className="h-6 w-40 bg-white/8 rounded-xl animate-pulse" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
+                    <SkeletonJadwal />
+                </div>
+            </main>
+        </>
     );
 
     return (
         <>
-            {/* Sidebar Desktop & Overlay Mobile */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-linear-to-t from-bg-primary to-bg-primary-2 border-r border-white/5 text-white transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-                <div className="flex flex-col h-full p-6">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-black ">Menu <span className="text-primary-2">Utama</span></h2>
-                        <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 bg-white/5 rounded-xl"><ChevronUp className="-rotate-90" size={18} /></button>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                target={item.href.startsWith("http") ? "_blank" : undefined}
-                                rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                                className={`flex items-center gap-4 p-4 rounded-2xl transition-all border ${item.name === "Jadwal"
-                                    ? "bg-primary/10 border-primary/15"
-                                    : "bg-white/5 border-transparent hover:bg-white/10"
-                                    } group`}
-                            >
-                                <div className={`${item.color} p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition`}>
-                                    <div className="text-white">{item.icon}</div>
-                                </div>
-                                <div className="flex flex-col flex-1">
-                                    <span className="text-sm font-bold">{item.name}</span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </aside>
-
-            {/* Overlay untuk close sidebar di mobile */}
-            {isSidebarOpen && <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
+            <Navbar />
 
             <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
-                {/* Simple Header */}
-                <div className="flex-none p-4 md:px-8 border-b border-white/5 z-20">
+                {/* ── HEADER ── */}
+                <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
                     <header className="max-w-5xl mx-auto flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                                 <ArrowLeft size={18} />
                             </Link>
-                            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 p-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
-                                <BookOpen size={16} className="text-primary-2" />
-                            </button>
-                            <h1 className="text-xl md:text-2xl font-black ">
+                            <h1 className="text-xl md:text-2xl font-black">
                                 Jadwal <span className="text-primary">Sholat</span>
                             </h1>
                         </div>
                     </header>
                 </div>
 
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide p-4 md:p-8">
-                    <div className="max-w-5xl mx-auto  flex flex-col gap-6">
+                {/* ── CONTENT ── */}
+                <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
+                    <div className="max-w-5xl mx-auto flex flex-col gap-6">
 
                         {/* Desert Background Section with Fade Edges */}
                         <div
@@ -448,21 +454,24 @@ export default function JadwalSholatPage() {
                                 {/* List Waktu Sholat */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {daftarWaktu.map((s) => {
-                                        const isNext = nextSholat?.name === s.name;
+                                        const isActive = activeSholat?.name === s.name;
+                                        const isNext = !activeSholat && nextSholat?.name === s.name;
+                                        const highlight = isActive || isNext;
                                         return (
                                             <div
                                                 key={s.name}
-                                                className={`flex justify-between items-center p-6 rounded-4xl border transition-all duration-500 ${isNext
+                                                className={`flex justify-between items-center p-6 rounded-4xl border transition-all duration-500 ${highlight
                                                     ? "bg-linear-to-br from-primary to-primary-2 border-transparent shadow-2xl shadow-primary/30"
                                                     : "bg-white/5 border-white/5 hover:border-white/10"
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    {isNext && <div className="w-1.5 h-8 bg-white rounded-full animate-grow" />}
+                                                    {highlight && <div className="w-1.5 h-8 bg-white rounded-full animate-grow" />}
                                                     <div className="flex flex-col">
-                                                        <span className={`text-xs font-black uppercase tracking-widest ${isNext ? "text-white/80" : "text-gray-500"}`}>
+                                                        <span className={`text-xs font-black uppercase tracking-widest ${highlight ? "text-white/80" : "text-gray-500"}`}>
                                                             {s.name}
                                                         </span>
+                                                        {isActive && <span className="text-[10px] font-black text-white italic">Sudah Memasuki Waktu</span>}
                                                         {isNext && <span className="text-[10px] font-black text-white italic">Sedang Dinantikan</span>}
                                                     </div>
                                                 </div>

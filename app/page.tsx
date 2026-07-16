@@ -21,9 +21,5 @@ async function getSurahs(): Promise<Surah[]> {
 export default async function Home() {
   const surahs = await getSurahs();
 
-  return (
-    <main className="w-screen h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden">
-      <HomeClient surahs={surahs} />
-    </main>
-  );
+  return <HomeClient surahs={surahs} />;
 }

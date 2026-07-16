@@ -1,4 +1,4 @@
-import { Search, Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Facebook } from "lucide-react";
+import { Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Facebook, Linkedin, SquareArrowOutUpRight, Gamepad2, Shield, ScrollText } from "lucide-react";
 
 export default function Footer() {
     const menuItems = [
@@ -8,20 +8,21 @@ export default function Footer() {
         { name: "Juz", icon: <Layers size={20} />, color: "bg-white/5", href: "/juz" },
         { name: "Dzikir", icon: <Wind size={20} />, color: "bg-white/5", href: "/dzikir" },
         { name: "Hadits", icon: <Quote size={20} />, color: "bg-white/5", href: "/hadits" },
+        { name: "Kuis", icon: <Gamepad2 size={20} />, color: "bg-white/5", href: "/game" },
     ];
     return (
         <footer className="py-8 border-t border-white/10">
-            <div className="mx-autow-full py-6 lg:py-8">
-                <div className="md:flex md:justify-between">
-                    <div className="mb-6 md:mb-0 max-w-sm">
+            <div className="mx-auto w-full py-6 lg:py-8">
+                <div className="md:flex md:justify-between gap-8">
+                    <div className="mb-6 md:mb-0 md:max-w-sm">
                         <a href="/" className="flex items-center">
                             <span className="text-heading self-center text-2xl font-semibold whitespace-nowrap">Al-Qur'an Ku</span>
                         </a>
-                        <p className="text-white/50 mt-4 text-sm">
+                        <p className="text-white/50 mt-4 text-sm text-justify">
                             Aplikasi Al-Qur'an digital yang menyediakan berbagai fitur untuk memudahkan pengguna dalam membaca, memahami, dan menghafal Al-Qur'an. Dengan antarmuka yang user-friendly dan fitur-fitur seperti pencarian ayat, jadwal sholat, dan doa harian, aplikasi ini bertujuan untuk membantu pengguna dalam meningkatkan pemahaman dan kecintaan mereka terhadap Al-Qur'an.
                         </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-8 sm:gap-0 sm:grid-cols-3">
                         <div>
                             <h2 className="mb-6 text-sm font-semibold text-heading uppercase">Links</h2>
                             <ul className="text-body font-medium">
@@ -42,12 +43,18 @@ export default function Footer() {
                         </div>
                         <div>
                             <h2 className="mb-6 text-sm font-semibold text-heading uppercase">Follow us</h2>
-                            <ul className="text-body font-medium">
-                                <li className="mb-4">
+                            <ul className="flex flex-col gap-4 text-body font-medium">
+                                <li>
+                                    <a href="https://linkedin.com/in/ammaricano" className="hover:underline flex items-center gap-2"><Linkedin /> LinkedIn</a>
+                                </li>
+                                <li>
                                     <a href="https://github.com/ammaricanooo" className="hover:underline flex items-center gap-2"><Github /> Github</a>
                                 </li>
                                 <li>
-                                    <a href="https://instagram.com/ammaricano" className="hover:underline flex items-center gap-2"><Instagram />Instagram</a>
+                                    <a href="https://instagram.com/ammaricano" className="hover:underline flex items-center gap-2"><Instagram /> Instagram</a>
+                                </li>
+                                <li>
+                                    <a href="https://threads.com/@ammaricano" className="hover:underline flex items-center gap-2"><SquareArrowOutUpRight /> Threads</a>
                                 </li>
                             </ul>
                         </div>
@@ -55,10 +62,16 @@ export default function Footer() {
                             <h2 className="mb-6 text-sm font-semibold text-heading uppercase">Legal</h2>
                             <ul className="text-body font-medium">
                                 <li className="mb-4">
-                                    <a href="#" className="hover:underline">Privacy Policy</a>
+                                    <a href="/privacy-policy" className="hover:underline flex items-center gap-2">
+                                        <Shield />
+                                        Kebijakan Privasi
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="#" className="hover:underline">Terms &amp; Conditions</a>
+                                    <a href="/terms-and-conditions" className="hover:underline flex items-center gap-2">
+                                        <ScrollText />
+                                        Syarat &amp; Ketentuan
+                                    </a>
                                 </li>
                             </ul>
                         </div>
