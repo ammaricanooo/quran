@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Home page -->
+  <url>
+    <loc>https://quran.ammaricano.my.id/</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Surah pages -->
+  <url>
+    <loc>https://quran.ammaricano.my.id/surah</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/surah/1</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/surah/2</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Juz pages -->
+  <url>
+    <loc>https://quran.ammaricano.my.id/juz</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/juz/1</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/juz/2</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Doa pages -->
+  <url>
+    <loc>https://quran.ammaricano.my.id/doa</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/doa/harian</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/jadwal</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/game</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Tahlil page -->
+  <url>
+    <loc>https://quran.ammaricano.my.id/tahlil</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://quran.ammaricano.my.id/hadits</loc>
+    <lastmod>2026-07-16T00:00:00+07:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

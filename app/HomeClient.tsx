@@ -52,11 +52,11 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 <header className="py-8">
                     <div className="flex justify-between items-start mb-8 gap-8">
                         <div>
-                            <p className="text-gray-300 font-medium flex items-center gap-2 text-xs md:text-base">
-                                Assalamu'alaikum, Yaa
+                            <p className="text-gray-300 font-medium flex flex-wrap items-center gap-2 text-xs md:text-base">
+                                Assalamu'alaikum,
                                 {user && (
                                     <span className="hover:underline cursor-pointer">
-                                        {user.displayName?.split(" ")[0]}
+                                        Yaa {user.displayName?.split(" ")[0]}
                                     </span>
                                 )}
                                 {user ? (
@@ -64,8 +64,8 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                                         <LogOut size={14} />
                                     </button>
                                 ) : (
-                                    <button onClick={handleLogin} className="flex items-center gap-1 text-xs text-green-400 hover:text-green-500">
-                                        Login <LogIn size={14} />
+                                    <button onClick={handleLogin} className="flex items-center gap-1 text-xs">
+                                        Yaa <span className="flex gap-1 items-center text-green-400 hover:text-green-500">Login <LogIn size={14} /></span>
                                     </button>
                                 )}
                             </p>
@@ -109,7 +109,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={20} />
                         <input
                             type="text"
-                            placeholder="Cari Surah (contoh: Al-Fatihah atau Kahfi)..."
+                            placeholder="Cari Surah..."
                             className="w-full bg-white/5 border border-white/5 rounded-3xl py-4 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,7 +156,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                         <Link
                             key={surah.nomor}
                             href={`/surah/${surah.nomor}`}
-                            className="group flex justify-between p-5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-4xl items-center transition-all duration-300 hover:scale-[1.02] shadow-xl"
+                            className="group flex justify-between p-5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-4xl items-center transition-all duration-300 shadow-xl"
                         >
                             <div className="flex items-center gap-4">
                                 <div className={`relative flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-t shadow-lg ${

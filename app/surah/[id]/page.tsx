@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, use as useHook } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, ScrollText, Search, BookmarkCheck, X } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, List, Search, BookmarkCheck, X } from 'lucide-react';
 import { db, auth, googleProvider } from "@/lib/firebase";
 import { setDoc, doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
@@ -360,8 +360,8 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                 <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
                   <ArrowLeft size={20} />
                 </Link>
-                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
-                  <ScrollText size={20} className="text-primary-2" />
+                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-2 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
+                  <List size={20} className="text-primary-2" />
                   <span className="hidden md:flex">Daftar Surah</span>
                 </button>
                 <div className="">

@@ -73,7 +73,7 @@ export default function JuzListPage() {
                                     <Link
                                         key={juz.number}
                                         href={`/juz/${juz.number}`}
-                                        className="group bg-white/5 border border-white/5 p-5 rounded-3xl hover:bg-white/10 hover:border-primary/30 transition-all duration-300 shadow-xl"
+                                        className="group bg-white/5 border border-white/5 p-5 rounded-3xl hover:bg-white/10 transition-all duration-300 shadow-xl"
                                     >
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20">

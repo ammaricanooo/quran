@@ -1,0 +1,22 @@
+{
+  "name": "Al-Qur'an Ku - Aplikasi Qur'an Digital Indonesia",
+  "short_name": "Al-Qur'an Ku",
+  "description": "Aplikasi Al-Qur'an digital dengan fitur lengkap untuk memudahkan pembelajaran dan pemahaman Al-Qur'an",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/ic_kaligrafi.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "scope": "/",
+  "categories": ["education", "books", "religion"],
+  "dir": "ltr",
+  "lang": "id-ID",
+  "orientation": "portrait",
+  "prefer_related_applications": false
+}

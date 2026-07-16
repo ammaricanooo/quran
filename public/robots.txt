@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /*.json
+Disallow: /?*
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+
+Sitemap: https://quran.ammaricano.my.id/sitemap.xml
+Sitemap: https://quran.ammaricano.my.id/sitemap-surah.xml
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Crawl-delay: 1

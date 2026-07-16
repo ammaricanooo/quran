@@ -1,5 +1,8 @@
 import Link from "next/link";
 import HomeClient from "./HomeClient";
+import { generateHomePageMetadata } from "./page-metadata";
+
+export const metadata = generateHomePageMetadata();
 
 export interface Surah {
   nomor: number;
