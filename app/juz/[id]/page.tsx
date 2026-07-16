@@ -28,6 +28,8 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQari, setSelectedQari] = useState("05");
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   const [savingId, setSavingId] = useState<number | null>(null);
   const [lastReadData, setLastReadData] = useState<any>(null);
@@ -121,6 +123,16 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     fetchJuzAyats();
   }, [juzId]);
 
+   const isAyatInViewport = (index: number): boolean => {
+    const element = ayatRefs.current[index];
+    if (!element) return false;
+    
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    return rect.top <= viewportHeight * 2 && rect.bottom >= viewportHeight * -2;
+  };
+
   // Audio Logic (Sama dengan Surah Page)
   const playAudio = async (index: number) => {
     if (!juzData || !audioRef.current) return;
@@ -130,13 +142,17 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       audioRef.current.pause();
       audioRef.current.src = audioUrl;
       audioRef.current.load();
+      setCurrentTime(0);
     }
 
     setCurrentAyatIndex(index);
     try {
       await audioRef.current.play();
       setIsPlaying(true);
-      ayatRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      
+      if (isAyatInViewport(index)) {
+        ayatRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } catch (err) { console.error(err); }
   };
 
@@ -423,20 +439,33 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
           <Footer />
         </div>
 
-        <audio ref={audioRef} onEnded={handleNextAyat} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />
+         <audio ref={audioRef} onEnded={handleNextAyat} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)} />
 
         {/* FLOATING PLAYER */}
         {currentAyatIndex !== null && (
-          <div className="fixed bottom-6 left-4 right-4 lg:left-80 lg:right-8 z-30 pointer-events-none">
-            <div className="max-w-md mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
-              <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {juzData.verses[currentAyatIndex].nomorAyat}</p>
-                <p className="text-sm font-bold truncate">{juzData.verses[currentAyatIndex].surahName}</p>
+          <div className="fixed bottom-4 left-4 right-4 lg:left-80 lg:right-8 z-30 pointer-events-none">
+            <div className="max-w-md mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 rounded-4xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
+              {/* Progress Bar */}
+              <div className="h-1 bg-white/10 cursor-pointer group" onClick={(e) => {
+                if (!audioRef.current || !duration) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                audioRef.current.currentTime = percent * duration;
+              }}>
+                <div className="h-full bg-gradient-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
               </div>
-              <button onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()} className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center transition shadow-lg shrink-0">
-                {isPlaying ? <Pause size={20} /> : <Play size={20} fill="currentColor" />}
-              </button>
+              
+              <div className="p-4 flex items-center gap-4">
+                <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {juzData.verses[currentAyatIndex].nomorAyat}</p>
+                  <p className="text-sm font-bold truncate">{juzData.verses[currentAyatIndex].surahName}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')} / {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
+                </div>
+                <button onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()} className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center transition shadow-lg shrink-0">
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} fill="currentColor" />}
+                </button>
+              </div>
             </div>
           </div>
         )}

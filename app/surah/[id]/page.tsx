@@ -29,6 +29,8 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   const [currentAyatIndex, setCurrentAyatIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQari, setSelectedQari] = useState("05");
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ayatRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -119,6 +121,16 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
     }
   }, [savingId]);
 
+  const isAyatInViewport = (index: number): boolean => {
+    const element = ayatRefs.current[index];
+    if (!element) return false;
+    
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    return rect.top <= viewportHeight * 2 && rect.bottom >= viewportHeight * -2;
+  };
+
   useEffect(() => {
     // Jika suratnya bukan Al-Fatihah (1) dan bukan At-Taubah (9), kita siapkan Basmalah
     if (id !== "1" && id !== "9") {
@@ -147,7 +159,10 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
     ) {
       const timer = setTimeout(() => {
         const targetAyat = lastReadData.ayatNo - 1;
-        ayatRefs.current[targetAyat]?.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Only scroll if the target ayat is in the current viewport area
+        if (isAyatInViewport(targetAyat)) {
+          ayatRefs.current[targetAyat]?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
         // clear the query parameter so future navigations don't auto‑scroll again
         const params = new URLSearchParams(searchParams.toString());
         params.delete("fromLastRead");
@@ -208,24 +223,25 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
 
     const audioUrl = data.ayat[index].audio[selectedQari];
 
-    // Reset audio jika ganti ayat
     if (currentAyatIndex !== index) {
       audioRef.current.pause();
       audioRef.current.src = audioUrl;
       audioRef.current.load();
+      setCurrentTime(0);
     }
 
     setCurrentAyatIndex(index);
 
     try {
-      // Browser butuh interaksi user, .play() di sini dipicu oleh onClick (aman)
       await audioRef.current.play();
       setIsPlaying(true);
 
-      ayatRefs.current[index]?.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+      if (isAyatInViewport(index)) {
+        ayatRefs.current[index]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
     } catch (err) {
       console.error("Playback error:", err);
     }
@@ -561,41 +577,56 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         </div>
 
         {/* Audio Element Hidden */}
-        <audio
-          ref={audioRef}
-          onEnded={handleNextAyat}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
+         <audio
+           ref={audioRef}
+           onEnded={handleNextAyat}
+           onPlay={() => setIsPlaying(true)}
+           onPause={() => setIsPlaying(false)}
+           onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+           onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+         />
 
         {/* Floating Player */}
-        {/* Floating Player - Penempatan Responsif */}
-        {currentAyatIndex !== null && (
-          <div className="fixed bottom-6 left-4 right-4 lg:left-80 lg:right-8 z-30 transition-all pointer-events-none">
-            <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 p-4 rounded-[2.5rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
-              <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {data.ayat[currentAyatIndex].nomorAyat}</p>
-                <p className="text-sm font-bold truncate">{data.namaLatin}</p>
-              </div>
-              <button
-                onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()}
-                className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
-              >
-                {isPlaying ? <Pause size={20} /> : <Play size={20} fill="currentColor" />}
-              </button>
-              <button
-                onClick={() => {
-                  audioRef.current?.pause();
-                  setCurrentAyatIndex(null);
-                }}
-                className="w-12 h-12 bg-white/10 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
-              >
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-        )}
+         {/* Floating Player - Penempatan Responsif */}
+         {currentAyatIndex !== null && (
+           <div className="fixed bottom-4 left-4 right-4 lg:left-80 lg:right-8 z-30 transition-all pointer-events-none">
+             <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 rounded-4xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
+               {/* Progress Bar */}
+               <div className="h-1 bg-white/10 cursor-pointer group" onClick={(e) => {
+                 if (!audioRef.current || !duration) return;
+                 const rect = e.currentTarget.getBoundingClientRect();
+                 const percent = (e.clientX - rect.left) / rect.width;
+                 audioRef.current.currentTime = percent * duration;
+               }}>
+                 <div className="h-full bg-gradient-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
+               </div>
+               
+               <div className="p-4 flex items-center gap-4">
+                 <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
+                 <div className="flex-1 min-w-0">
+                   <p className="text-[10px] text-primary-2 font-black uppercase">Ayat {data.ayat[currentAyatIndex].nomorAyat}</p>
+                   <p className="text-sm font-bold truncate">{data.namaLatin}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')} / {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
+                 </div>
+                 <button
+                   onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()}
+                   className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
+                 >
+                   {isPlaying ? <Pause size={20} /> : <Play size={20} fill="currentColor" />}
+                 </button>
+                 <button
+                   onClick={() => {
+                     audioRef.current?.pause();
+                     setCurrentAyatIndex(null);
+                   }}
+                   className="w-12 h-12 bg-white/10 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shrink-0"
+                 >
+                   <X size={20} />
+                 </button>
+               </div>
+             </div>
+           </div>
+         )}
 
         {/* Login Modal */}
         {showLoginModal && (

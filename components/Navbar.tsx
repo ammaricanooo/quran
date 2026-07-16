@@ -145,8 +145,8 @@ export default function Navbar({ activeItem, hideSidebar }: NavbarProps) {
       )}
 
       {/* ─── MOBILE BOTTOM NAVIGATION ─── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-2 pb-2">
-        <div className="bg-bg-primary/80 backdrop-blur-2xl border border-white/10 rounded-3xl px-2 py-2 shadow-2xl">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
+        <div className="bg-bg-primary rounded-t-4xl border border-white/10 px-2 py-2 shadow-2xl">
           <div className="flex items-center justify-around">
             {bottomNavItems.map((item) => {
               if (item.href === null) {

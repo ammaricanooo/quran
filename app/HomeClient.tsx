@@ -52,11 +52,10 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 <header className="py-8">
                     <div className="flex justify-between items-start mb-8 gap-8">
                         <div>
-                            <p className="text-gray-300 font-medium flex flex-wrap items-center gap-2 text-xs md:text-base">
+                            <p className="text-gray-300 font-medium flex flex-wrap items-center gap-1 text-xs md:text-base">
                                 Assalamu'alaikum,
                                 {user && (
-                                    <span className="hover:underline cursor-pointer">
-                                        Yaa {user.displayName?.split(" ")[0]}
+                                    <span className="hover:underline cursor-pointer">Yaa {user.displayName?.split(" ")[0]}
                                     </span>
                                 )}
                                 {user ? (
