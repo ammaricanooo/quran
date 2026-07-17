@@ -14,12 +14,12 @@ export const metadata: Metadata = {
     "dzikir islam"
   ],
   alternates: {
-    canonical: "https://quran-ku.vercel.app/dzikir"
+    canonical: "https://quran.ammaricano.my.id/dzikir"
   },
   openGraph: {
     title: "Dzikir Pagi Petang & Wirid Lengkap | Al-Qur'an Ku",
     description: "Bacaan dzikir pagi dan petang lengkap dari Al-Qur'an dan Sunnah dengan terjemahan.",
-    url: "https://quran-ku.vercel.app/dzikir",
+    url: "https://quran.ammaricano.my.id/dzikir",
     type: "website"
   }
 };

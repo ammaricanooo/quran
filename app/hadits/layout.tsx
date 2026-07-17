@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     "riwayat hadits"
   ],
   alternates: {
-    canonical: "https://quran-ku.vercel.app/hadits"
+    canonical: "https://quran.ammaricano.my.id/hadits"
   },
   openGraph: {
     title: "Hadits Nabi Lengkap 4 Kutub | Al-Qur'an Ku",
     description: "Kumpulan hadits Nabi Muhammad SAW lengkap dari 4 kitab dengan terjemahan.",
-    url: "https://quran-ku.vercel.app/hadits",
+    url: "https://quran.ammaricano.my.id/hadits",
     type: "website"
   }
 };

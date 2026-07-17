@@ -17,12 +17,12 @@ export function generateHomePageMetadata(): Metadata {
       "tahlil bacaan lengkap"
     ],
     alternates: {
-      canonical: "https://quran-ku.vercel.app"
+      canonical: "https://quran.ammaricano.my.id"
     },
     openGraph: {
       title: "Al-Qur'an Ku - Aplikasi Qur'an Digital Terlengkap",
       description: "Baca Al-Qur'an lengkap 114 surah dengan terjemahan, doa harian, jadwal sholat, kuis interaktif, dan fitur Islami lainnya.",
-      url: "https://quran-ku.vercel.app",
+      url: "https://quran.ammaricano.my.id",
       type: "website"
     }
   };

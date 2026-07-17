@@ -12,12 +12,12 @@ export const metadata: Metadata = {
     "doa tahlil"
   ],
   alternates: {
-    canonical: "https://quran-ku.vercel.app/tahlil"
+    canonical: "https://quran.ammaricano.my.id/tahlil"
   },
   openGraph: {
     title: "Tahlil Lengkap Bacaan Arab Latin | Al-Qur'an Ku",
     description: "Teks tahlil lengkap untuk almarhum dengan tulisan Arab, Latin, dan terjemahan Indonesia.",
-    url: "https://quran-ku.vercel.app/tahlil",
+    url: "https://quran.ammaricano.my.id/tahlil",
     type: "website"
   }
 };

@@ -13,12 +13,12 @@ export const metadata: Metadata = {
     "belajar Quran dengan game"
   ],
   alternates: {
-    canonical: "https://quran-ku.vercel.app/game"
+    canonical: "https://quran.ammaricano.my.id/game"
   },
   openGraph: {
     title: "Kuis Qur'an Interaktif | Al-Qur'an Ku",
     description: "Mainkan kuis Qur'an interaktif: tebak surah, sambung ayat, dan multiplayer.",
-    url: "https://quran-ku.vercel.app/game",
+    url: "https://quran.ammaricano.my.id/game",
     type: "website"
   }
 };
