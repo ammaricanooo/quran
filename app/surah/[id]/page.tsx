@@ -128,7 +128,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
     const rect = element.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     
-    return rect.top <= viewportHeight * 2 && rect.bottom >= viewportHeight * -2;
+    return rect.top <= viewportHeight * 7 && rect.bottom >= viewportHeight * -2;
   };
 
   useEffect(() => {
