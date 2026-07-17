@@ -71,6 +71,7 @@ export default function TebakSurahPage() {
     const [selected, setSelected] = useState<number | null>(null);
     const [answered, setAnswered] = useState(false);
     const [totalScore, setTotalScore] = useState(0);
+    const [currentScore, setCurrentScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(TIME);
     const [questionStartTime, setQuestionStartTime] = useState(Date.now());
 
@@ -116,9 +117,12 @@ export default function TebakSurahPage() {
         setAnswered(true);
         const q = questions[current];
         if (idx === q?.correctIndex) {
-            setTotalScore(s => s + calcScore(true, remaining, TIME));
+            const scoreToAdd = calcScore(true, remaining, TIME);
+            setCurrentScore(scoreToAdd);
+            setTotalScore(s => s + scoreToAdd);
             if (navigator.vibrate) navigator.vibrate(50);
         } else {
+            setCurrentScore(0);
             if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
         }
     };
@@ -224,7 +228,7 @@ export default function TebakSurahPage() {
                                 {/* Skor soal ini */}
                                 {answered && selected === q.correctIndex && (
                                     <div className="text-center text-sm font-black text-amber-400 animate-pulse">
-                                        +{calcScore(true, timeLeft, TIME).toLocaleString()} poin ⚡
+                                        +{currentScore.toLocaleString()} poin ⚡
                                     </div>
                                 )}
 

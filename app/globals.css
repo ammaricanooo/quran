@@ -97,6 +97,48 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
+/* CSS untuk Tajweed */
+tajweed[class*="ham_wasl"] {
+  color: #4ade80 !important;
+}
+
+tajweed[class*="laam_shamsiyah"] {
+  color: #fbbf24 !important;
+}
+
+tajweed[class*="madda_normal"] {
+  color: #60a5fa !important;
+}
+
+tajweed[class*="madda_permissible"] {
+  color: #c084fc !important;
+}
+
+tajweed[class*="madda_necessary"] {
+  color: #f87171 !important;
+}
+
+tajweed[class*="ikhfa"] {
+  color: #2dd4bf !important;
+}
+
+tajweed[class*="idgham"] {
+  color: #f97316 !important;
+}
+
+tajweed[class*="iqlab"] {
+  color: #8b5cf6 !important;
+}
+
+tajweed[class*="ghunnah"] {
+  color: #0ea5e9 !important;
+}
+
+.tajweed-text {
+  line-height: 2.5 !important;
+  letter-spacing: 0 !important;
+}
+
 @keyframes drift {
   from {
     transform: 'translateX(0px)'

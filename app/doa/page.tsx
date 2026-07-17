@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Share2, ArrowLeft, BookOpen, Copy, Check } from "lucide-react";
+import { Search, Share2, ArrowLeft, BookOpen } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonCardList } from "@/components/Skeleton";
@@ -104,17 +104,10 @@ export default function DoaPage() {
                                 key={doa.id}
                                 className="bg-white/5 border border-white/10 rounded-4xl p-6 hover:bg-white/10 transition-all duration-300 shadow-xl"
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/30">
-                                        {doa.grup}
-                                    </span>
-                                    <button
-                                        onClick={() => handleShare(doa)}
-                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-primary-2 transition"
-                                    >
-                                        <Share2 size={18} />
-                                    </button>
-                                </div>
+                                {/* Badge grup */}
+                                <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/30 inline-block mb-4">
+                                    {doa.grup}
+                                </span>
 
                                 <h3 className="text-xl font-bold mb-6 text-white/90 leading-tight">{doa.nama}</h3>
 
@@ -122,13 +115,13 @@ export default function DoaPage() {
                                     {doa.ar}
                                 </p>
 
-                                <div className="space-y-3 border-l-2 border-primary/30 pl-4 py-1">
+                                <div className="space-y-3 border-l-2 border-primary/30 pl-4 py-1 mb-4">
                                     <p className="font-bold italic tracking-wide text-sm">{doa.tr}</p>
                                     <p className="text-gray-300 text-sm leading-relaxed">{doa.idn}</p>
                                 </div>
 
                                 {doa.tentang && (
-                                    <div className="mt-4 pt-2">
+                                    <div className="mb-4">
                                         {openTentangId === doa.id && (
                                             <div className="mb-4 p-4 bg-black/20 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
                                                 <p className="text-xs text-gray-400 leading-relaxed italic whitespace-pre-line">
@@ -147,6 +140,17 @@ export default function DoaPage() {
                                         </button>
                                     </div>
                                 )}
+
+                                {/* Action row — konsisten dengan halaman lain */}
+                                <div className="flex items-center gap-2 pt-4 border-t border-white/5">
+                                    <button
+                                        onClick={() => handleShare(doa)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
+                                    >
+                                        <Share2 size={14} />
+                                        <span className="hidden md:flex">Bagikan</span>
+                                    </button>
+                                </div>
                             </div>
                         ))}
 

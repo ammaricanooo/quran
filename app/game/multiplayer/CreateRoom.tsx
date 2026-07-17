@@ -1,11 +1,9 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { buildPool, buildTebakAyatQ, buildSambungAyatQ, buildTebakSurahQ } from "@/lib/game-utils";
-import type { QuizMode, SerializedQuestion } from "@/lib/room-types";
+import { buildPool, buildTebakAyatQ, buildSambungAyatQ, buildTebakSurahQ, buildPoolFromJuz } from "@/lib/game-utils";
+import type { QuizMode, SerializedQuestion, SourceType } from "@/lib/room-types";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
@@ -24,94 +22,107 @@ export default function CreateRoom({ onBack }: { onBack: () => void }) {
     const [name, setName] = useState("");
     const [hostPlaying, setHostPlaying] = useState(true);
     const [mode, setMode] = useState<QuizMode>("tebak-ayat");
+    const [sourceType, setSourceType] = useState<SourceType>("random");
+    const [selectedJuz, setSelectedJuz] = useState(1);
     const [total, setTotal] = useState(10);
     const [time, setTime] = useState(30);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState("");
     const [error, setError] = useState("");
 
-    const handleCreate = async () => {
-        if (hostPlaying && !name.trim()) { setError("Masukkan nama kamu dulu!"); return; }
-        setError("");
-        setLoading(true);
 
-        try {
-            setProgress("Menyiapkan soal...");
-            const pool = await buildPool(total + 6);
-            setProgress("Membangun pertanyaan...");
 
-            const serialized: SerializedQuestion[] = pool.slice(0, total).map((a, i) => {
-                let q;
-                if (mode === "tebak-ayat")        q = buildTebakAyatQ(a, pool.filter((_, j) => j !== i), i);
-                else if (mode === "sambung-ayat")  q = buildSambungAyatQ(a, pool.filter((_, j) => j !== i), i);
-                else                               q = buildTebakSurahQ(a, pool.filter((_, j) => j !== i), i);
+const handleCreate = async () => {
+    if (hostPlaying && !name.trim()) { setError("Masukkan nama kamu dulu!"); return; }
+    setError("");
+    setLoading(true);
 
-                return {
-                    id: q.id,
-                    mode: q.mode,
-                    arabText: q.ayat.teksArab,
-                    latinText: q.ayat.teksLatin,
-                    indonesiaText: q.ayat.teksIndonesia,
-                    audioUrl: q.ayat.audio?.["05"] ?? "",
-                    surahName: q.ayat.surahName,
-                    surahNo: q.ayat.surahNo,
-                    ayatNo: q.ayat.nomorAyat,
-                    choices: q.choices,
-                    correctIndex: q.correctIndex,
-                    prompt: q.prompt ?? null,
-                    promptLatin: q.promptLatin ?? null,
-                } satisfies SerializedQuestion;
-            });
-
-            setProgress("Membuat room...");
-            const code = randomCode();
-            const hostId = `host-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-
-            // Kalau host ikut main, daftarkan sebagai player
-            const players: Record<string, object> = hostPlaying
-                ? {
-                    [hostId]: {
-                        name: name.trim(),
-                        score: 0,
-                        answeredAt: null,
-                        lastAnswer: null,
-                        correct: null,
-                        joinedAt: Date.now(),
-                        isHost: true,
-                    },
-                }
-                : {};
-
-            const roomData = {
-                code,
-                hostId,
-                hostPlaying,
-                status: "waiting",
-                mode,
-                createdAt: Date.now(),
-                currentQuestion: 0,
-                questionStartedAt: 0,
-                timePerQuestion: time,
-                totalQuestions: total,
-                questions: serialized,
-                players,
-            };
-
-            await setDoc(doc(db, "quiz_rooms", code), roomData);
-
-            // Simpan hostId di sessionStorage agar room page tahu siapa host
-            sessionStorage.setItem(`room_${code}_playerId`, hostId);
-            if (hostPlaying) {
-                sessionStorage.setItem(`room_${code}_playerName`, name.trim());
-            }
-
-            router.push(`/game/multiplayer/room/${code}`);
-        } catch (e) {
-            console.error(e);
-            setError("Gagal membuat room. Coba lagi.");
-            setLoading(false);
+    try {
+        setProgress("Menyiapkan soal...");
+        let pool;
+        
+        if (sourceType === "random") {
+            // Random surah (existing behavior)
+            pool = await buildPool(total + 6);
+        } else {
+            // Juz selection
+            pool = await buildPoolFromJuz(selectedJuz, total + 6);
         }
-    };
+        
+        setProgress("Membangun pertanyaan...");
+        const serialized: SerializedQuestion[] = pool.slice(0, total).map((a, i) => {
+            let q;
+            if (mode === "tebak-ayat")        q = buildTebakAyatQ(a, pool.filter((_, j) => j !== i), i);
+            else if (mode === "sambung-ayat")  q = buildSambungAyatQ(a, pool.filter((_, j) => j !== i), i);
+            else                               q = buildTebakSurahQ(a, pool.filter((_, j) => j !== i), i);
+
+            return {
+                id: q.id,
+                mode: q.mode,
+                arabText: q.ayat.teksArab,
+                latinText: q.ayat.teksLatin,
+                indonesiaText: q.ayat.teksIndonesia,
+                audioUrl: q.ayat.audio?.["05"] ?? "",
+                surahName: q.ayat.surahName,
+                surahNo: q.ayat.surahNo,
+                ayatNo: q.ayat.nomorAyat,
+                choices: q.choices,
+                correctIndex: q.correctIndex,
+                prompt: q.prompt ?? null,
+                promptLatin: q.promptLatin ?? null,
+            } satisfies SerializedQuestion;
+        });
+
+        setProgress("Membuat room...");
+        const code = randomCode();
+        const hostId = `host-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+        const players: Record<string, object> = hostPlaying
+            ? {
+                [hostId]: {
+                    name: name.trim(),
+                    score: 0,
+                    answeredAt: null,
+                    lastAnswer: null,
+                    correct: null,
+                    joinedAt: Date.now(),
+                    isHost: true,
+                },
+            }
+            : {};
+
+        const roomData = {
+            code,
+            hostId,
+            hostPlaying,
+            status: "waiting",
+            mode,
+            sourceType,
+            selectedJuz: sourceType === "juz" ? selectedJuz : undefined,
+            createdAt: Date.now(),
+            currentQuestion: 0,
+            questionStartedAt: 0,
+            timePerQuestion: time,
+            totalQuestions: total,
+            questions: serialized,
+            players,
+        };
+
+        await setDoc(doc(db, "quiz_rooms", code), roomData);
+
+        // Simpan hostId di sessionStorage agar room page tahu siapa host
+        sessionStorage.setItem(`room_${code}_playerId`, hostId);
+        if (hostPlaying) {
+            sessionStorage.setItem(`room_${code}_playerName`, name.trim());
+        }
+
+        router.push(`/game/multiplayer/room/${code}`);
+    } catch (e) {
+        console.error(e);
+        setError("Gagal membuat room. Coba lagi.");
+        setLoading(false);
+    }
+};
 
     return (
         <>
@@ -185,6 +196,67 @@ export default function CreateRoom({ onBack }: { onBack: () => void }) {
                                         </div>
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Source Selection */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Sumber Ayat</label>
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => setSourceType("random")}
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                                        sourceType === "random"
+                                            ? "bg-white/10 border-primary/40 text-primary-2"
+                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/8"
+                                    }`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${sourceType === "random" ? "border-current" : "border-gray-600"}`}>
+                                        {sourceType === "random" && <div className="w-2 h-2 rounded-full bg-current" />}
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-black">Random Surah</p>
+                                        <p className="text-xs opacity-60">Ayat acak dari berbagai surah</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={() => setSourceType("juz")}
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                                        sourceType === "juz"
+                                            ? "bg-white/10 border-violet-400/40 text-violet-400"
+                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/8"
+                                    }`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${sourceType === "juz" ? "border-current" : "border-gray-600"}`}>
+                                        {sourceType === "juz" && <div className="w-2 h-2 rounded-full bg-current" />}
+                                    </div>
+                                    <div className="text-left flex-1">
+                                        <p className="text-sm font-black">Pilih Juz</p>
+                                        <p className="text-xs opacity-60">Soal dari juz tertentu</p>
+                                    </div>
+                                </button>
+
+                                {sourceType === "juz" && (
+                                    <div className="ml-8">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Pilih Juz</p>
+                                        <div className="grid grid-cols-6 sm:grid-cols-10 gap-2">
+                                            {Array.from({ length: 30 }, (_, i) => i + 1).map(j => (
+                                                <button
+                                                    key={j}
+                                                    onClick={() => setSelectedJuz(j)}
+                                                    className={`py-3 rounded-xl text-xs font-black transition-all border ${
+                                                        selectedJuz === j
+                                                            ? "bg-violet-400/20 border-violet-400/40 text-violet-400 shadow-lg shadow-violet-400/10"
+                                                            : "bg-white/5 border-white/5 text-gray-500 hover:bg-white/10 hover:text-gray-300"
+                                                    }`}
+                                                >
+                                                    {j}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

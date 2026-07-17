@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Wind } from "lucide-react";
+import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Wind, Share2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonDzikirList } from "@/components/Skeleton";
@@ -30,7 +30,8 @@ export default function DzikirPage() {
         const max = parseInt(maxStr.replace("x", "")) || 1;
         const current = counts[id] || 0;
         if (current < max) {
-            setCounts({ ...counts, [id]: current + 1 });
+            const next = current + 1;
+            setCounts({ ...counts, [id]: next });
             if (navigator.vibrate) navigator.vibrate(40);
         }
     };
@@ -44,6 +45,16 @@ export default function DzikirPage() {
         { id: "sore",  label: "Sore",  icon: <Moon size={14} /> },
         { id: "solat", label: "Solat", icon: <Sparkles size={14} /> },
     ];
+
+    const handleShare = (item: any) => {
+        const text = `🌙 *Dzikir ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}*\n\n${item.arab}\n\n"${item.indo}"\n\nDibaca: ${item.ulang}\n\nSumber: Al-Qur'an Ku`;
+        if (navigator.share) {
+            navigator.share({ title: `Dzikir ${activeTab}`, text });
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Dzikir berhasil disalin!");
+        }
+    };
 
     const filteredData = dzikirData.filter((d) => d.type.toLowerCase() === activeTab.toLowerCase());
 
@@ -167,6 +178,17 @@ export default function DzikirPage() {
                                         <p className="text-xs text-gray-400 italic leading-relaxed border-l-2 border-primary-2/30 pl-3">
                                             "{item.indo}"
                                         </p>
+
+                                        {/* Action row */}
+                                        <div className="flex items-center gap-2 pt-3 border-t border-white/5 mt-3">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleShare(item); }}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
+                                            >
+                                                <Share2 size={14} />
+                                                <span className="hidden md:flex">Bagikan</span>
+                                            </button>
+                                        </div>
 
                                         <div
                                             className="absolute bottom-0 left-0 h-1 bg-primary-2 transition-all duration-300 rounded-b-4xl"

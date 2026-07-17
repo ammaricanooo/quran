@@ -72,6 +72,59 @@ export async function buildPool(count: number): Promise<AyatRaw[]> {
     return pool;
 }
 
+/** Fetch semua ayat dari juz tertentu */
+export async function fetchJuzAyats(juzNo: number): Promise<AyatRaw[]> {
+    const res = await fetch(`/api/proxy-juz/${juzNo}`);
+    const juzInfo = await res.json();
+    const dataJuz = juzInfo.data;
+
+    const startSurah = parseInt(dataJuz.surah_id_start);
+    const endSurah = parseInt(dataJuz.surah_id_end);
+
+    const surahNumbers = Array.from({ length: endSurah - startSurah + 1 }, (_, i) => startSurah + i);
+    const surahPromises = surahNumbers.map(num =>
+        fetch(`https://equran.id/api/v2/surat/${num}`).then(res => res.json())
+    );
+
+    const surahResponses = await Promise.all(surahPromises);
+
+    let combinedVerses: AyatRaw[] = [];
+
+    surahResponses.forEach((res, idx) => {
+        const sData = res.data;
+        const sNum = surahNumbers[idx];
+
+        let filtered = sData.ayat;
+        if (sNum === startSurah) filtered = filtered.filter((a: any) => a.nomorAyat >= parseInt(dataJuz.verse_start));
+        if (sNum === endSurah) filtered = filtered.filter((a: any) => a.nomorAyat <= parseInt(dataJuz.verse_end));
+
+        const mapped = filtered.map((a: any) => ({
+            nomorAyat: a.nomorAyat,
+            teksArab: a.teksArab,
+            teksLatin: a.teksLatin,
+            teksIndonesia: a.teksIndonesia,
+            audio: a.audio,
+            surahName: sData.namaLatin,
+            surahNo: sData.nomor,
+            surahArti: sData.arti,
+            jumlahAyat: sData.jumlahAyat,
+        }));
+
+        combinedVerses = [...combinedVerses, ...mapped];
+    });
+
+    return combinedVerses;
+}
+
+/** Buat pool ayat dari juz tertentu */
+export async function buildPoolFromJuz(juzNo: number, count: number): Promise<AyatRaw[]> {
+    const allAyats = await fetchJuzAyats(juzNo);
+    const longEnough = allAyats.filter(a => a.teksArab.split(" ").length >= 5);
+
+    const shuffled = longEnough.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+}
+
 // ─── Question builders ────────────────────────────────────────────────────────
 
 export function buildTebakAyatQ(correct: AyatRaw, pool: AyatRaw[], idx: number): Question {

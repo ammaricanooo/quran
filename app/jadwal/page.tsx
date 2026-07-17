@@ -102,6 +102,7 @@ export default function JadwalSholatPage() {
     const [locationName, setLocationName] = useState({ kota: "", provinsi: "" });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [errorType, setErrorType] = useState<"denied" | "unavailable" | "">("");
     const [currentTime, setCurrentTime] = useState(new Date());
     const [hijriDate, setHijriDate] = useState("");
     const [hijriCalendar, setHijriCalendar] = useState<any[]>([]);
@@ -112,79 +113,94 @@ export default function JadwalSholatPage() {
         return () => clearInterval(timer);
     }, []);
 
-    useEffect(() => {
-        const getLocation = () => {
-            if (!navigator.geolocation) {
-                setError("GPS tidak didukung oleh browser Anda.");
-                return;
-            }
+    const fetchLocation = () => {
+        setLoading(true);
+        setError("");
+        setErrorType("");
 
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                try {
-                    const { latitude, longitude } = position.coords;
-                    const geoRes = await fetch(
-                        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=id`
-                    );
-                    const geoData = await geoRes.json();
+        if (!navigator.geolocation) {
+            setError("GPS tidak didukung oleh browser Anda.");
+            setErrorType("unavailable");
+            setLoading(false);
+            return;
+        }
 
-                    const kota = geoData.localityInfo.administrative[3]?.name || geoData.city || "Kota Bogor";
-                    const provinsi = geoData.localityInfo.administrative[2]?.name || "Jawa Barat";
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const { latitude, longitude } = position.coords;
+                const geoRes = await fetch(
+                    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=id`
+                );
+                const geoData = await geoRes.json();
 
-                    setLocationName({ kota, provinsi });
+                const kota = geoData.localityInfo.administrative[3]?.name || geoData.city || "Kota Bogor";
+                const provinsi = geoData.localityInfo.administrative[2]?.name || "Jawa Barat";
 
-                    const res = await fetch("https://equran.id/api/v2/shalat", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            provinsi: provinsi,
-                            kabkota: kota.includes("Kota") || kota.includes("Kabupaten") ? kota : `Kota ${kota}`,
-                            bulan: new Date().getMonth() + 1,
-                            tahun: new Date().getFullYear(),
-                        }),
-                    });
+                setLocationName({ kota, provinsi });
 
-                    const today = new Date();
-                    const day = today.getDate();
-                    const month = today.getMonth() + 1;
-                    const year = today.getFullYear();
+                const res = await fetch("https://equran.id/api/v2/shalat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        provinsi: provinsi,
+                        kabkota: kota.includes("Kota") || kota.includes("Kabupaten") ? kota : `Kota ${kota}`,
+                        bulan: new Date().getMonth() + 1,
+                        tahun: new Date().getFullYear(),
+                    }),
+                });
 
-                    const hijriRes = await fetch(
-                        `https://api.aladhan.com/v1/gToH?date=${day}-${month}-${year}`
-                    );
-                    const hijriJson = await hijriRes.json();
+                const today = new Date();
+                const day = today.getDate();
+                const month = today.getMonth() + 1;
+                const year = today.getFullYear();
 
-                    if (hijriJson.code === 200) {
-                        const hijri = hijriJson.data.hijri;
-                        setHijriDate(`${hijri.day} ${hijri.month.en} ${hijri.year} H`);
-                    }
+                const hijriRes = await fetch(
+                    `https://api.aladhan.com/v1/gToH?date=${day}-${month}-${year}`
+                );
+                const hijriJson = await hijriRes.json();
 
-                    const calRes = await fetch(
-                        `https://api.aladhan.com/v1/gToHCalendar/${month}/${year}`
-                    );
-                    const calJson = await calRes.json();
-
-                    if (calJson.code === 200) {
-                        setHijriCalendar(calJson.data);
-                    }
-
-                    const json = await res.json();
-                    if (json.code === 200) {
-                        setDataSholat(json.data);
-                    } else {
-                        setError("Jadwal tidak tersedia untuk lokasi ini.");
-                    }
-                } catch (err) {
-                    setError("Gagal menyambungkan ke server.");
-                } finally {
-                    setLoading(false);
+                if (hijriJson.code === 200) {
+                    const hijri = hijriJson.data.hijri;
+                    setHijriDate(`${hijri.day} ${hijri.month.en} ${hijri.year} H`);
                 }
-            }, () => {
-                setError("Akses lokasi ditolak.");
-                setLoading(false);
-            });
-        };
 
-        getLocation();
+                const calRes = await fetch(
+                    `https://api.aladhan.com/v1/gToHCalendar/${month}/${year}`
+                );
+                const calJson = await calRes.json();
+
+                if (calJson.code === 200) {
+                    setHijriCalendar(calJson.data);
+                }
+
+                const json = await res.json();
+                if (json.code === 200) {
+                    setDataSholat(json.data);
+                } else {
+                    setError("Jadwal tidak tersedia untuk lokasi ini.");
+                    setErrorType("unavailable");
+                }
+            } catch (err) {
+                setError("Gagal menyambungkan ke server.");
+                setErrorType("unavailable");
+            } finally {
+                setLoading(false);
+            }
+        }, (err) => {
+            // err.code 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+            if (err.code === 1) {
+                setError("Akses lokasi ditolak. Izinkan akses lokasi di pengaturan browser, lalu coba lagi.");
+                setErrorType("denied");
+            } else {
+                setError("Gagal mendapatkan lokasi. Pastikan GPS aktif dan coba lagi.");
+                setErrorType("unavailable");
+            }
+            setLoading(false);
+        });
+    };
+
+    useEffect(() => {
+        fetchLocation();
     }, []);
 
     // --- LOGIKA HITUNG WAKTU ---
@@ -444,9 +460,32 @@ export default function JadwalSholatPage() {
                         </div>
 
                         {error ? (
-                            <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-[2.5rem] text-center text-red-400">
-                                <Info className="mx-auto mb-3" size={32} />
-                                <p className="text-sm font-bold">{error}</p>
+                            <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-4xl text-center text-red-400 space-y-4">
+                                <Info className="mx-auto" size={36} />
+                                <p className="text-sm font-bold leading-relaxed">{error}</p>
+
+                                {errorType === "denied" && (
+                                    <div className="space-y-3">
+                                        <p className="text-xs text-red-400/70 leading-relaxed">
+                                            Untuk mengaktifkan kembali: klik ikon kunci 🔒 di address bar browser → izinkan Lokasi → refresh halaman.
+                                        </p>
+                                        <button
+                                            onClick={fetchLocation}
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-2xl text-sm font-black text-red-400 transition-all active:scale-95"
+                                        >
+                                            <MapPin size={16} /> Coba Minta Akses Lagi
+                                        </button>
+                                    </div>
+                                )}
+
+                                {errorType === "unavailable" && (
+                                    <button
+                                        onClick={fetchLocation}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-2xl text-sm font-black text-red-400 transition-all active:scale-95"
+                                    >
+                                        <MapPin size={16} /> Coba Lagi
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="space-y-12">
@@ -475,7 +514,7 @@ export default function JadwalSholatPage() {
                                                         {isNext && <span className="text-[10px] font-black text-white italic">Sedang Dinantikan</span>}
                                                     </div>
                                                 </div>
-                                                <span className={`text-3xl font-mono font-black "text-white`}>
+                                                <span className="text-3xl font-mono font-black text-white">
                                                     {s.time || "--:--"}
                                                 </span>
                                             </div>
@@ -485,7 +524,7 @@ export default function JadwalSholatPage() {
 
                                 <div className="overflow-x-auto custom-scroll">
                                     <div className="min-w-220">
-<p className="font-black mb-3 tracking-widest"> Kalender Hijriah Bulan Ini </p>
+                                        <p className="text-[10px] font-black mb-3 tracking-widest uppercase text-gray-400">Kalender Hijriah Bulan Ini</p>
                                         {/* Header hari */}
                                         <div className="grid grid-cols-7 text-[10px] text-white/50 font-bold text-center py-2 border-b border-b-white/10">
                                             <div>Ahad</div>

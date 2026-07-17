@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Footer from "@/components/Footer";
 import { ArrowLeft, Headphones, Link2, BookMarked, Swords } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import type { Metadata } from "next";
@@ -98,6 +99,7 @@ export default function GameHomePage() {
                                 <li>Skor maksimum per soal: <strong className="text-white">1.000 poin</strong></li>
                             </ul>
                         </div>
+            <Footer />
                     </div>
                 </div>
             </main>

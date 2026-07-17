@@ -4,6 +4,7 @@
 
 export type RoomStatus = "waiting" | "countdown" | "question" | "leaderboard" | "finished";
 export type QuizMode = "tebak-ayat" | "sambung-ayat" | "tebak-surah";
+export type SourceType = "random" | "juz";
 
 export interface Player {
     name: string;
@@ -37,6 +38,8 @@ export interface RoomDoc {
     hostPlaying: boolean;        // apakah host ikut bermain sebagai peserta
     status: RoomStatus;
     mode: QuizMode;
+    sourceType: SourceType;      // "random" atau "juz"
+    selectedJuz?: number;        // nomor juz jika sourceType === "juz"
     createdAt: number;
     currentQuestion: number;     // index soal saat ini (0-based)
     questionStartedAt: number;   // timestamp ms saat soal mulai
