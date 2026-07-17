@@ -164,7 +164,7 @@ export default function TebakSurahPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6 flex flex-col">
-                    <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 gap-5">
+                    <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 gap-5 pb-6">
                         {phase === "loading" && <LoadingScreen progress={loadProgress} />}
                         {phase === "result" && <ResultScreen score={totalScore} total={TOTAL} onRestart={load} />}
 
