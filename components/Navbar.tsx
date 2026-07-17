@@ -205,7 +205,7 @@ export default function Navbar({ activeItem, hideSidebar }: NavbarProps) {
           ${isBottomSheetOpen ? "translate-y-0" : "translate-y-full"}
         `}
       >
-        <div className="bg-bg-primary-2 border border-white/10 rounded-t-3xl px-6 pt-5 pb-10 shadow-2xl">
+        <div className="bg-bg-primary-2 border border-white/10 px-6 pt-5 pb-10 shadow-2xl">
           {/* Handle bar */}
           <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-6" />
 
