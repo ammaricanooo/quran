@@ -7,8 +7,17 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonCardList } from "@/components/Skeleton";
 
+interface Doa {
+    id: number;
+    nama: string;
+    grup: string;
+    ar: string;
+    tr: string;
+    idn: string;
+}
+
 export default function DoaPage() {
-    const [doaList, setDoaList] = useState<any[]>([]);
+    const [doaList, setDoaList] = useState<Doa[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
     const [openTentangId, setOpenTentangId] = useState<number | null>(null);
@@ -22,7 +31,7 @@ export default function DoaPage() {
             });
     }, []);
 
-    const handleShare = (doa: any) => {
+    const handleShare = (doa: Doa) => {
         const text = `✨ *${doa.nama}*\n\n${doa.ar}\n\n"${doa.idn}"\n\nSumber: Al-Qur'an Ku`;
         if (navigator.share) {
             navigator.share({ title: doa.nama, text });

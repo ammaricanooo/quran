@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -10,9 +11,15 @@ import { Surah } from "./page";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
+interface LastRead {
+    surahNo: number;
+    surahName: string;
+    ayatNo: number;
+}
+
 export default function HomeClient({ surahs }: { surahs: Surah[] }) {
     const [user, setUser] = useState<User | null>(null);
-    const [lastRead, setLastRead] = useState<any>(null);
+    const [lastRead, setLastRead] = useState<LastRead | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState("Semua");
 
@@ -72,7 +79,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                             <p className="text-xs text-white/30 max-w-sm">Bercerminlah pada setiap ayat Al Quran yang kita baca, karena di dalamnya terdapat petunjuk hidup yang sempurna.</p>
                         </div>
                         <div className="opacity-80 p-2 bg-white/5 rounded-2xl shrink-0">
-                            <img src="ic_kaligrafi.svg" alt="Kaligrafi" className="w-28 md:w-32" />
+                        <Image src="/ic_kaligrafi.svg" alt="Kaligrafi" width={128} height={128} className="w-28 md:w-32" />
                         </div>
                     </div>
 
@@ -122,29 +129,21 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                             <div className="absolute -bottom-1 left-0 w-8 h-1 bg-primary-2 rounded-full" />
                         </div>
 
-                        {/* Filter Slider */}
-                        <div className="flex overflow-x-auto pb-1 scrollbar-hide">
-                            <div className="relative flex bg-white/5 p-1 rounded-2xl border border-white/5 min-w-[280px]">
-                                <div
-                                    className="absolute top-1 bottom-1 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] bg-white rounded-xl shadow-md"
-                                    style={{
-                                        width: `${100 / filters.length}%`,
-                                        left: 0,
-                                        transform: `translateX(${activeIndex * 100}%) scale(0.92)`,
-                                    }}
-                                />
-                                {filters.map((f) => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setActiveFilter(f)}
-                                        className={`relative z-10 flex-1 py-2.5 text-[11px] font-black uppercase tracking-wider transition-colors duration-300 ${
-                                            activeFilter === f ? "text-bg-primary" : "text-gray-400 hover:text-white"
-                                        }`}
-                                    >
-                                        {f}
-                                    </button>
-                                ))}
-                            </div>
+                        {/* Filter Buttons */}
+                        <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
+                            {filters.map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setActiveFilter(f)}
+                                    className={`flex-1 rounded-3xl px-4 py-2 text-[11px] font-black uppercase tracking-wider transition ${
+                                        activeFilter === f
+                                            ? "bg-white text-bg-primary shadow-md"
+                                            : "text-gray-400 hover:text-white"
+                                    }`}
+                                >
+                                    {f}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>

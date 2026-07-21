@@ -2,14 +2,36 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Clock, Info, CloudSun, Sunset, MoonStar, Sun } from "lucide-react";
+import { ArrowLeft, MapPin, Info, CloudSun, Sunset, MoonStar, Sun } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonJadwal } from "@/components/Skeleton";
 
+interface ThemeConfig {
+    sky: string;
+    sunMoon: { color: string; shadow: string };
+    dunes: string[];
+}
+
+interface DuneShapeProps {
+    className?: string;
+    d: string;
+    speed: string;
+}
+
+const DuneShape = ({ className = "", d, speed }: DuneShapeProps) => (
+    <svg
+        viewBox="0 0 1000 300"
+        preserveAspectRatio="none"
+        className={`absolute bottom-0 left-0 w-[200%] h-full ${speed} ${className}`}
+    >
+        <path d={d} />
+    </svg>
+);
+
 const DynamicDesertBg = ({ timeOfDay }: { timeOfDay: string }) => {
     // Definisi warna berdasarkan waktu
-    const themes: any = {
+    const themes: Record<string, ThemeConfig> = {
         subuh: {
             sky: "from-[#1a2c5b] via-[#3a5a9c] to-[#f9dcc4]", // Twilight ke oranye fajar
             sunMoon: { color: "text-[#f9dcc4]/50", shadow: "shadow-[#f9dcc4]/20" },
@@ -38,17 +60,6 @@ const DynamicDesertBg = ({ timeOfDay }: { timeOfDay: string }) => {
     };
 
     const theme = themes[timeOfDay] || themes.siang;
-
-    // SVG Ombak/Bukit Pasir
-    const DuneShape = ({ className, d, speed }: any) => (
-        <svg
-            viewBox="0 0 1000 300"
-            preserveAspectRatio="none"
-            className={`absolute bottom-0 left-0 w-[200%] h-full ${speed} ${className}`}
-        >
-            <path d={d} />
-        </svg>
-    );
 
     return (
         <div className={`absolute inset-0 bg-linear-to-b ${theme.sky} transition-all duration-1000 overflow-hidden`}>
@@ -97,15 +108,76 @@ const DynamicDesertBg = ({ timeOfDay }: { timeOfDay: string }) => {
     );
 };
 
+interface ShalatJadwal {
+    tanggal: number;
+    imsak: string;
+    subuh: string;
+    terbit: string;
+    dhuha: string;
+    dzuhur: string;
+    ashar: string;
+    maghrib: string;
+    isya: string;
+}
+
+interface ShalatData {
+    kabkota: string;
+    provinsi: string;
+    bulan: number;
+    bulan_nama: string;
+    tahun: number;
+    jadwal: ShalatJadwal[];
+}
+
+interface HijriMonth {
+    number: number;
+    en: string;
+    ar: string;
+}
+
+interface HijriDesignation {
+    abbreviated: string;
+    expanded: string;
+}
+
+interface HijriDate {
+    date: string;
+    format: string;
+    day: string;
+    weekday: { en: string; ar: string };
+    month: HijriMonth;
+    year: string;
+    designation: HijriDesignation;
+    holidays: string[];
+}
+
+interface GregorianMonth {
+    number: number;
+    en: string;
+}
+
+interface GregorianDate {
+    date: string;
+    format: string;
+    day: string;
+    weekday: { en: string };
+    month: GregorianMonth;
+    year: string;
+}
+
+interface CalendarDay {
+    hijri: HijriDate;
+    gregorian: GregorianDate;
+}
+
 export default function JadwalSholatPage() {
-    const [dataSholat, setDataSholat] = useState<any>(null);
-    const [locationName, setLocationName] = useState({ kota: "", provinsi: "" });
+    const [dataSholat, setDataSholat] = useState<ShalatData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [errorType, setErrorType] = useState<"denied" | "unavailable" | "">("");
     const [currentTime, setCurrentTime] = useState(new Date());
     const [hijriDate, setHijriDate] = useState("");
-    const [hijriCalendar, setHijriCalendar] = useState<any[]>([]);
+    const [hijriCalendar, setHijriCalendar] = useState<CalendarDay[]>([]);
 
     // 1. Update Jam Real-time
     useEffect(() => {
@@ -135,8 +207,6 @@ export default function JadwalSholatPage() {
 
                 const kota = geoData.localityInfo.administrative[3]?.name || geoData.city || "Kota Bogor";
                 const provinsi = geoData.localityInfo.administrative[2]?.name || "Jawa Barat";
-
-                setLocationName({ kota, provinsi });
 
                 const res = await fetch("https://equran.id/api/v2/shalat", {
                     method: "POST",
@@ -206,7 +276,7 @@ export default function JadwalSholatPage() {
     // --- LOGIKA HITUNG WAKTU ---
     const listJadwal = dataSholat?.jadwal || [];
     const tglHariIni = new Date().getDate();
-    const hariIni = listJadwal.find((item: any) => item.tanggal === tglHariIni);
+    const hariIni = listJadwal.find((item: ShalatJadwal) => item.tanggal === tglHariIni);
     const firstDay = new Date(
         new Date().getFullYear(),
         new Date().getMonth(),

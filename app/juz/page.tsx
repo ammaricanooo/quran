@@ -7,8 +7,19 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonJuzList } from "@/components/Skeleton";
 
+interface JuzItem {
+    number: number;
+    name: string;
+    name_start_id: string;
+    name_end_id: string;
+    verse_start: string;
+    verse_end: string;
+    ayat_arab: string;
+    ayat_indo: string;
+}
+
 export default function JuzListPage() {
-    const [juzList, setJuzList] = useState<any[]>([]);
+    const [juzList, setJuzList] = useState<JuzItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(true);
 

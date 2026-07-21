@@ -28,13 +28,30 @@ export interface Question {
 
 const QARI = "05";
 
+/** Raw shape returned by equran.id API (before mapping to AyatRaw) */
+interface RawAyatResponse {
+    nomorAyat: number;
+    teksArab: string;
+    teksLatin: string;
+    teksIndonesia: string;
+    audio: { [key: string]: string };
+}
+
+interface RawSurahResponse {
+    nomor: number;
+    namaLatin: string;
+    arti: string;
+    jumlahAyat: number;
+    ayat: RawAyatResponse[];
+}
+
 /** Fetch semua ayat dari 1 surah acak */
 export async function fetchSurahAyats(surahNo?: number): Promise<AyatRaw[]> {
     const no = surahNo ?? (Math.floor(Math.random() * 114) + 1);
     const res = await fetch(`https://equran.id/api/v2/surat/${no}`);
     const json = await res.json();
-    const d = json.data;
-    return (d.ayat as any[]).map((a) => ({
+    const d = json.data as RawSurahResponse;
+    return d.ayat.map((a) => ({
         nomorAyat: a.nomorAyat,
         teksArab: a.teksArab,
         teksLatin: a.teksLatin,
@@ -72,33 +89,40 @@ export async function buildPool(count: number): Promise<AyatRaw[]> {
     return pool;
 }
 
+interface JuzInfoResponse {
+    surah_id_start: string;
+    surah_id_end: string;
+    verse_start: string;
+    verse_end: string;
+}
+
 /** Fetch semua ayat dari juz tertentu */
 export async function fetchJuzAyats(juzNo: number): Promise<AyatRaw[]> {
     const res = await fetch(`/api/proxy-juz/${juzNo}`);
     const juzInfo = await res.json();
-    const dataJuz = juzInfo.data;
+    const dataJuz = juzInfo.data as JuzInfoResponse;
 
     const startSurah = parseInt(dataJuz.surah_id_start);
     const endSurah = parseInt(dataJuz.surah_id_end);
 
     const surahNumbers = Array.from({ length: endSurah - startSurah + 1 }, (_, i) => startSurah + i);
     const surahPromises = surahNumbers.map(num =>
-        fetch(`https://equran.id/api/v2/surat/${num}`).then(res => res.json())
+        fetch(`https://equran.id/api/v2/surat/${num}`).then(r => r.json())
     );
 
     const surahResponses = await Promise.all(surahPromises);
 
     let combinedVerses: AyatRaw[] = [];
 
-    surahResponses.forEach((res, idx) => {
-        const sData = res.data;
+    surahResponses.forEach((surahRes: { data: RawSurahResponse }, idx) => {
+        const sData = surahRes.data;
         const sNum = surahNumbers[idx];
 
-        let filtered = sData.ayat;
-        if (sNum === startSurah) filtered = filtered.filter((a: any) => a.nomorAyat >= parseInt(dataJuz.verse_start));
-        if (sNum === endSurah) filtered = filtered.filter((a: any) => a.nomorAyat <= parseInt(dataJuz.verse_end));
+        let filtered: RawAyatResponse[] = sData.ayat;
+        if (sNum === startSurah) filtered = filtered.filter(a => a.nomorAyat >= parseInt(dataJuz.verse_start));
+        if (sNum === endSurah) filtered = filtered.filter(a => a.nomorAyat <= parseInt(dataJuz.verse_end));
 
-        const mapped = filtered.map((a: any) => ({
+        const mapped: AyatRaw[] = filtered.map(a => ({
             nomorAyat: a.nomorAyat,
             teksArab: a.teksArab,
             teksLatin: a.teksLatin,

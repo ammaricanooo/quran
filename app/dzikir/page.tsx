@@ -1,30 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Wind, Share2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { SkeletonDzikirList } from "@/components/Skeleton";
+import { dzikirData as localDzikirData, DzikirItem } from "@/lib/dzikir/dzikir-data";
 
 export default function DzikirPage() {
-    const [dzikirData, setDzikirData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const dzikirData = localDzikirData;
     const [activeTab, setActiveTab] = useState("pagi");
     const [counts, setCounts] = useState<{ [key: string]: number }>({});
 
     const [customCounter, setCustomCounter] = useState(0);
     const [customMax, setCustomMax] = useState(33);
-
-    useEffect(() => {
-        fetch("/api/proxy-dzikir")
-            .then((res) => res.json())
-            .then((json) => {
-                setDzikirData(json.data);
-                setLoading(false);
-            })
-            .catch(() => setLoading(false));
-    }, []);
 
     const incrementCount = (id: string, maxStr: string) => {
         const max = parseInt(maxStr.replace("x", "")) || 1;
@@ -46,7 +35,7 @@ export default function DzikirPage() {
         { id: "solat", label: "Solat", icon: <Sparkles size={14} /> },
     ];
 
-    const handleShare = (item: any) => {
+    const handleShare = (item: DzikirItem) => {
         const text = `🌙 *Dzikir ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}*\n\n${item.arab}\n\n"${item.indo}"\n\nDibaca: ${item.ulang}\n\nSumber: Al-Qur'an Ku`;
         if (navigator.share) {
             navigator.share({ title: `Dzikir ${activeTab}`, text });
@@ -84,7 +73,7 @@ export default function DzikirPage() {
                                     }`}
                                 >
                                     {cat.icon}
-                                    <span className="hidden sm:inline">{cat.label}</span>
+                                    <span className={`${activeTab === cat.id ? "inline" : "hidden"} sm:inline`}>{cat.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -132,23 +121,20 @@ export default function DzikirPage() {
                         </div>
 
                         {/* Dzikir List */}
-                        {loading ? (
-                            <SkeletonDzikirList count={4} />
-                        ) : (
-                            filteredData.map((item, index) => {
-                                const id = `${activeTab}-${index}`;
-                                const current = counts[id] || 0;
-                                const max = parseInt(item.ulang.replace("x", "")) || 1;
-                                const isDone = current >= max;
+                        {filteredData.map((item, index) => {
+                            const id = `${activeTab}-${index}`;
+                            const current = counts[id] || 0;
+                            const max = parseInt(item.ulang.replace("x", "")) || 1;
+                            const isDone = current >= max;
 
-                                return (
-                                    <div
-                                        key={id}
-                                        onClick={() => incrementCount(id, item.ulang)}
-                                        className={`relative group p-6 rounded-4xl border transition-all duration-300 cursor-pointer overflow-hidden ${
-                                            isDone ? "bg-primary-2/10 border-primary-2/40" : "bg-white/5 border-white/5 hover:bg-white/8"
-                                        }`}
-                                    >
+                            return (
+                                <div
+                                    key={id}
+                                    onClick={() => incrementCount(id, item.ulang)}
+                                    className={`relative group p-6 rounded-4xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                                        isDone ? "bg-primary-2/10 border-primary-2/40" : "bg-white/5 border-white/5 hover:bg-white/8"
+                                    }`}
+                                >
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${
@@ -196,8 +182,7 @@ export default function DzikirPage() {
                                         />
                                     </div>
                                 );
-                            })
-                        )}
+                            })}
 
                         <Footer />
                     </div>

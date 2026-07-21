@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, List, Search, BookmarkCheck, X } from 'lucide-react';
 import { db, auth, googleProvider } from "@/lib/firebase";
 import { setDoc, doc, onSnapshot } from "firebase/firestore";
-import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonAyatList } from "@/components/Skeleton";
@@ -20,12 +20,49 @@ const LIST_QARI = [
 
 let cachedBasmalahAudio: { [qariId: string]: string } | null = null;
 
+interface AyatItem {
+  nomorAyat: number;
+  teksArab: string;
+  teksLatin: string;
+  teksIndonesia: string;
+  audio: { [key: string]: string };
+}
+
+interface TafsirItem {
+  ayat: number;
+  teks: string;
+}
+
+interface SurahData {
+  nomor: number;
+  nama: string;
+  namaLatin: string;
+  arti: string;
+  tempatTurun: string;
+  deskripsi: string;
+  jumlahAyat: number;
+  audio: { [key: string]: string };
+  ayat: AyatItem[];
+}
+
+interface SurahListItem {
+  nomor: number;
+  namaLatin: string;
+  tempatTurun: string;
+}
+
+interface LastReadData {
+  surahNo: number;
+  surahName: string;
+  ayatNo: number;
+}
+
 export default function SurahPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrapping params dengan benar untuk Client Component
   const resolvedParams = useHook(params);
   const id = resolvedParams.id;
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<SurahData | null>(null);
   const [currentAyatIndex, setCurrentAyatIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQari, setSelectedQari] = useState("05");
@@ -35,10 +72,10 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ayatRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const [tafsirData, setTafsirData] = useState<any[]>([]);
+  const [tafsirData, setTafsirData] = useState<TafsirItem[]>([]);
   const [openTafsirIndex, setOpenTafsirIndex] = useState<number | null>(null);
 
-  const [surahList, setSurahList] = useState<any[]>([]);
+  const [surahList, setSurahList] = useState<SurahListItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Untuk mobile drawer
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,12 +83,12 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
 
   const [savingId, setSavingId] = useState<number | null>(null);
-  const [lastReadData, setLastReadData] = useState<any>(null);
+  const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const fromLastRead = searchParams.get("fromLastRead");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
@@ -247,7 +284,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
     }
   };
 
-  const handleShare = (item: any) => {
+  const handleShare = (item: AyatItem) => {
     const text = `📖 *${data.namaLatin} Ayat ${item.nomorAyat}*\n\n${item.teksArab}\n\n"${item.teksIndonesia}"\n\nBaca di Al-Qur'an Ku: ${window.location.href}`;
 
     if (navigator.share) {
@@ -465,7 +502,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                 </div>
               )}
 
-              {data.ayat.map((item: any, index: number) => {
+              {data.ayat.map((item: AyatItem, index: number) => {
                 const currentTafsir = tafsirData.find((t) => t.ayat === item.nomorAyat);
                 const isLastRead = lastReadData?.surahNo === data.nomor && lastReadData?.ayatNo === item.nomorAyat;
                 const isCurrentlySaving = savingId === item.nomorAyat;

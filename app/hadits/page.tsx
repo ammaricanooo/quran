@@ -7,8 +7,15 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonCardList } from "@/components/Skeleton";
 
+interface Hadits {
+    no: number;
+    judul: string;
+    arab: string;
+    indo: string;
+}
+
 export default function HaditsPage() {
-    const [haditsData, setHaditsData] = useState<any[]>([]);
+    const [haditsData, setHaditsData] = useState<Hadits[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -22,7 +29,7 @@ export default function HaditsPage() {
             .catch(() => setLoading(false));
     }, []);
 
-    const handleShare = (item: any) => {
+    const handleShare = (item: Hadits) => {
         const text = `📜 *${item.judul}*\n\n${item.arab}\n\nArtinya: "${item.indo}"\n\n(Hadits Arbain No. ${item.no})\n\nSumber: Al-Qur'an Ku`;
         if (navigator.share) {
             navigator.share({ title: item.judul, text });

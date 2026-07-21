@@ -32,7 +32,6 @@ function LoadingScreen({ progress }: { progress: number }) {
 
 function ResultScreen({ score, total, onRestart }: { score: number; total: number; onRestart: () => void }) {
     const pct = Math.round((score / (total * 1000)) * 100);
-    const correct = score > 0 ? Math.round(score / 750) : 0; // estimasi
     const grade = pct >= 80 ? { label: "Ahli Navigasi Al-Qur'an!", color: "text-amber-400", icon: "🏆" }
         : pct >= 60 ? { label: "Penghafal Handal!", color: "text-primary-2", icon: "⭐" }
         : pct >= 30 ? { label: "Terus Belajar", color: "text-violet-400", icon: "📖" }
@@ -73,7 +72,7 @@ export default function TebakSurahPage() {
     const [totalScore, setTotalScore] = useState(0);
     const [currentScore, setCurrentScore] = useState(0);
     const [timeLeft, setTimeLeft] = useState(TIME);
-    const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+    const [questionStartTime, setQuestionStartTime] = useState(() => Date.now());
 
     const load = useCallback(async () => {
         setPhase("loading");
@@ -95,21 +94,7 @@ export default function TebakSurahPage() {
 
     useEffect(() => { load(); }, [load]);
 
-    // Timer
-    useEffect(() => {
-        if (phase !== "playing" || answered) return;
-        setTimeLeft(TIME);
-        setQuestionStartTime(Date.now());
-        const iv = setInterval(() => {
-            setTimeLeft(p => {
-                if (p <= 1) { clearInterval(iv); handleAnswer(-1); return 0; }
-                return p - 1;
-            });
-        }, 1000);
-        return () => clearInterval(iv);
-    }, [current, phase]);
-
-    const handleAnswer = (idx: number) => {
+    const handleAnswer = useCallback((idx: number) => {
         if (answered) return;
         const elapsed = (Date.now() - questionStartTime) / 1000;
         const remaining = Math.max(0, TIME - elapsed);
@@ -125,7 +110,21 @@ export default function TebakSurahPage() {
             setCurrentScore(0);
             if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
         }
-    };
+    }, [answered, questionStartTime, questions, current]);
+
+    // Timer
+    useEffect(() => {
+        if (phase !== "playing" || answered) return;
+        setTimeLeft(TIME);
+        setQuestionStartTime(Date.now());
+        const iv = setInterval(() => {
+            setTimeLeft(p => {
+                if (p <= 1) { clearInterval(iv); handleAnswer(-1); return 0; }
+                return p - 1;
+            });
+        }, 1000);
+        return () => clearInterval(iv);
+    }, [current, phase, answered, handleAnswer]);
 
     const handleNext = () => {
         if (current + 1 >= TOTAL) { setPhase("result"); return; }

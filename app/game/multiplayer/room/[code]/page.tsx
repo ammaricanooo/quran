@@ -127,14 +127,25 @@ function WaitingRoom({ room, playerId, code }: { room: RoomDoc; playerId: string
 }
 
 function Countdown({ room, code }: { room: RoomDoc; code: string }) {
-    const [count, setCount] = useState(3);
+    const targetTime = (room.countdownStartedAt ?? Date.now()) + 3000;
+    const [count, setCount] = useState(() => Math.max(0, Math.ceil((targetTime - Date.now()) / 1000)));
 
     useEffect(() => {
-        const elapsed = Math.floor((Date.now() - (room.countdownStartedAt ?? Date.now())) / 1000);
-        const remaining = Math.max(0, 3 - elapsed);
-        setCount(remaining);
+        const updateCount = () => {
+            const now = Date.now();
+            const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+            setCount(remaining);
+            if (remaining <= 0) {
+                clearInterval(iv);
+                updateDoc(doc(db, "quiz_rooms", code), {
+                    status: "question",
+                    currentQuestion: 0,
+                    questionStartedAt: Date.now(),
+                });
+            }
+        };
 
-        if (remaining === 0) {
+        if (targetTime <= Date.now()) {
             updateDoc(doc(db, "quiz_rooms", code), {
                 status: "question",
                 currentQuestion: 0,
@@ -143,22 +154,9 @@ function Countdown({ room, code }: { room: RoomDoc; code: string }) {
             return;
         }
 
-        const iv = setInterval(() => {
-            setCount(p => {
-                const next = p - 1;
-                if (next <= 0) {
-                    clearInterval(iv);
-                    updateDoc(doc(db, "quiz_rooms", code), {
-                        status: "question",
-                        currentQuestion: 0,
-                        questionStartedAt: Date.now(),
-                    });
-                }
-                return Math.max(0, next);
-            });
-        }, 1000);
+        const iv = setInterval(updateCount, 1000);
         return () => clearInterval(iv);
-    }, []);
+    }, [code, targetTime]);
 
     return (
         <div className="flex-1 flex flex-col items-center justify-center gap-6">
@@ -180,21 +178,44 @@ function QuestionView({
     const [answered, setAnswered] = useState(false);
     const [timeLeft, setTimeLeft] = useState(room.timePerQuestion);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [currentGainedScore, setCurrentGainedScore] = useState<number>(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const qIdx = room.currentQuestion;
-    // Host diidentifikasi dari room.hostId
     const isHost = room.hostId === playerId;
-    // Host spectator = host yang tidak ikut bermain
     const isSpectator = isHost && !room.hostPlaying;
-    const isActivePlayer = !isSpectator && !!room.players[playerId];
 
     // Reset when question changes
     useEffect(() => {
         setSelected(null);
         setAnswered(false);
         setIsPlaying(false);
+        setCurrentGainedScore(0);
         audioRef.current?.pause();
     }, [qIdx]);
+
+    const advanceQuestion = useCallback(async () => {
+        const next = qIdx + 1;
+        if (next >= room.totalQuestions) {
+            await updateDoc(doc(db, "quiz_rooms", code), { status: "finished" });
+        } else {
+            await updateDoc(doc(db, "quiz_rooms", code), {
+                status: "question",
+                currentQuestion: next,
+                questionStartedAt: Date.now(),
+                ...Object.fromEntries(Object.keys(room.players).map(pid => [
+                    `players.${pid}.answeredAt`, null,
+                ])),
+            });
+        }
+    }, [qIdx, room.totalQuestions, room.players, code]);
+
+    const handleTimeout = useCallback(() => {
+        if (answered) return;
+        setAnswered(true);
+        if (isHost) {
+            setTimeout(() => advanceQuestion(), 3000);
+        }
+    }, [answered, isHost, advanceQuestion]);
 
     // Timer
     useEffect(() => {
@@ -210,19 +231,10 @@ function QuestionView({
             });
         }, 1000);
         return () => clearInterval(iv);
-    }, [qIdx, room.questionStartedAt]);
+    }, [qIdx, room.questionStartedAt, room.timePerQuestion, handleTimeout]);
 
-    const handleTimeout = () => {
-        if (answered) return;
-        setAnswered(true);
-        // Auto-advance host after 3s
-        if (isHost) {
-            setTimeout(() => advanceQuestion(), 3000);
-        }
-    };
-
-    const handleAnswer = async (idx: number) => {
-        if (answered || isSpectator) return;   // spectator tidak bisa jawab
+    const handleAnswer = useCallback(async (idx: number) => {
+        if (answered || isSpectator) return;
         setSelected(idx);
         setAnswered(true);
         audioRef.current?.pause();
@@ -231,6 +243,7 @@ function QuestionView({
         const remaining = Math.max(0, room.timePerQuestion - elapsed);
         const correct = idx === q.correctIndex;
         const gained = calcScore(correct, remaining, room.timePerQuestion);
+        setCurrentGainedScore(gained);
 
         await updateDoc(doc(db, "quiz_rooms", code), {
             [`players.${playerId}.answeredAt`]: Date.now(),
@@ -241,28 +254,10 @@ function QuestionView({
 
         if (navigator.vibrate) navigator.vibrate(correct ? 50 : [80, 40, 80]);
 
-        // Host auto-advances when all answered or time up
         if (isHost) {
             setTimeout(() => advanceQuestion(), 3000);
         }
-    };
-
-    const advanceQuestion = async () => {
-        const next = qIdx + 1;
-        if (next >= room.totalQuestions) {
-            await updateDoc(doc(db, "quiz_rooms", code), { status: "finished" });
-        } else {
-            await updateDoc(doc(db, "quiz_rooms", code), {
-                status: "question",
-                currentQuestion: next,
-                questionStartedAt: Date.now(),
-                // Reset semua jawaban pemain untuk soal ini
-                ...Object.fromEntries(Object.keys(room.players).map(pid => [
-                    `players.${pid}.answeredAt`, null,
-                ])),
-            });
-        }
-    };
+    }, [answered, isSpectator, room.questionStartedAt, room.timePerQuestion, q.correctIndex, room.players, playerId, code, isHost, advanceQuestion]);
 
     const playAudio = () => {
         if (!audioRef.current) return;
@@ -373,11 +368,9 @@ function QuestionView({
                 </div>
 
                 {/* Skor gained */}
-                {answered && selected !== null && selected === q.correctIndex && (() => {
-                    const elapsed = (Date.now() - room.questionStartedAt) / 1000;
-                    const gained = calcScore(true, Math.max(0, room.timePerQuestion - elapsed), room.timePerQuestion);
-                    return <p className="text-center text-sm font-black text-emerald-400 animate-pulse">+{gained.toLocaleString()} poin ⚡</p>;
-                })()}
+                {answered && selected !== null && selected === q.correctIndex && (
+                    <p className="text-center text-sm font-black text-emerald-400 animate-pulse">+{currentGainedScore.toLocaleString()} poin ⚡</p>
+                )}
 
                 {(answered || isSpectator) && (
                     <p className="text-center text-xs text-gray-500">
@@ -449,18 +442,20 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     const { code } = useHook(params);
     const router = useRouter();
     const [room, setRoom] = useState<RoomDoc | null>(null);
-    const [playerId, setPlayerId] = useState<string>("");
+    const [playerId, setPlayerId] = useState<string>(() => {
+        if (typeof window !== "undefined") {
+            return sessionStorage.getItem(`room_${code}_playerId`) || "";
+        }
+        return "";
+    });
     const [error, setError] = useState("");
 
-    // Ambil playerId dari sessionStorage
+    // Redirect if no playerId
     useEffect(() => {
-        const pid = sessionStorage.getItem(`room_${code}_playerId`);
-        if (!pid) {
+        if (!playerId) {
             router.replace("/game/multiplayer");
-            return;
         }
-        setPlayerId(pid);
-    }, [code]);
+    }, [playerId, router]);
 
     // Subscribe Firestore realtime
     useEffect(() => {

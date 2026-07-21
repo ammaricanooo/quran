@@ -17,13 +17,44 @@ const LIST_QARI = [
   { id: "06", name: "Yasser Al-Dosari", img: "/Yasser.png" },
 ];
 
-let cachedBasmalahAudio: { [qariId: string]: string } | null = null;
+interface JuzVerse {
+  nomorAyat: number;
+  teksArab: string;
+  teksLatin: string;
+  teksIndonesia: string;
+  audio: { [key: string]: string };
+  surahName: string;
+  surahNameArab: string;
+  surahNum: number;
+  tafsir?: string;
+}
+
+interface JuzDetailData {
+  verses: JuzVerse[];
+}
+
+interface SidebarJuzItem {
+  number: number;
+  name: string;
+}
+
+interface LastReadData {
+  surahNo: number;
+  surahName: string;
+  ayatNo: number;
+}
+
+interface TafsirItem {
+  ayat: number;
+  teks: string;
+}
+
 
 export default function JuzDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = useHook(params);
   const juzId = resolvedParams.id;
 
-  const [juzData, setJuzData] = useState<any>(null);
+  const [juzData, setJuzData] = useState<JuzDetailData | null>(null);
   const [currentAyatIndex, setCurrentAyatIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedQari, setSelectedQari] = useState("05");
@@ -32,7 +63,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
   const [duration, setDuration] = useState(0);
 
   const [savingId, setSavingId] = useState<number | null>(null);
-  const [lastReadData, setLastReadData] = useState<any>(null);
+  const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
   const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -40,7 +71,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
   const [openTafsirIndex, setOpenTafsirIndex] = useState<number | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [juzList, setJuzList] = useState<any[]>([]);
+  const [juzList, setJuzList] = useState<SidebarJuzItem[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   // 1. Fetch Daftar Juz untuk Sidebar
@@ -90,23 +121,23 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
         const surahResponses = await Promise.all(surahPromises);
         const tafsirResponses = await Promise.all(tafsirPromises);
 
-        let combinedVerses: any[] = [];
+        let combinedVerses: JuzVerse[] = [];
 
-        surahResponses.forEach((res, idx) => {
-          const sData = res.data;
-          const tData = tafsirResponses[idx].data.tafsir;
+        surahResponses.forEach((surahRes: { data: { nomor: number; namaLatin: string; nama: string; ayat: JuzVerse[] } }, idx) => {
+          const sData = surahRes.data;
+          const tData: TafsirItem[] = tafsirResponses[idx].data.tafsir;
           const sNum = surahNumbers[idx];
 
-          let filtered = sData.ayat;
-          if (sNum === startSurah) filtered = filtered.filter((a: any) => a.nomorAyat >= parseInt(dataJuz.verse_start));
-          if (sNum === endSurah) filtered = filtered.filter((a: any) => a.nomorAyat <= parseInt(dataJuz.verse_end));
+          let filtered: JuzVerse[] = sData.ayat;
+          if (sNum === startSurah) filtered = filtered.filter(a => a.nomorAyat >= parseInt(dataJuz.verse_start));
+          if (sNum === endSurah) filtered = filtered.filter(a => a.nomorAyat <= parseInt(dataJuz.verse_end));
 
-          const mapped = filtered.map((a: any) => ({
+          const mapped: JuzVerse[] = filtered.map(a => ({
             ...a,
             surahName: sData.namaLatin,
             surahNameArab: sData.nama,
             surahNum: sData.nomor,
-            tafsir: tData.find((t: any) => t.ayat === a.nomorAyat)?.teks
+            tafsir: tData.find(t => t.ayat === a.nomorAyat)?.teks
           }));
 
           combinedVerses = [...combinedVerses, ...mapped];
@@ -230,7 +261,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  const handleShare = (item: any) => {
+  const handleShare = (item: JuzVerse) => {
     const text = `📖 *Juz ${juzId} - ${item.surahName} Ayat ${item.nomorAyat}*\n\n${item.teksArab}\n\n"${item.teksIndonesia}"`;
     if (navigator.share) navigator.share({ title: `Juz ${juzId}`, text });
     else { navigator.clipboard.writeText(text); alert("Disalin!"); }
@@ -341,7 +372,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                 </div>
               )}
 
-              {juzData.verses.map((item: any, index: number) => {
+              {juzData.verses.map((item: JuzVerse, index: number) => {
                 const isLastRead = lastReadData?.surahNo === item.surahNum && lastReadData?.ayatNo === item.nomorAyat;
                 const isCurrentlySaving = savingId === item.nomorAyat;
                 const showSaving = isCurrentlySaving && !isLastRead;
