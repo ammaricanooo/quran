@@ -42,6 +42,7 @@ interface LastReadData {
   surahNo: number;
   surahName: string;
   ayatNo: number;
+  updatedAt?: Date | string | null;
 }
 
 interface TafsirItem {
@@ -66,6 +67,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
   const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
   const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
 
+  const cachedBasmalahAudioRef = useRef<{ [key: string]: string } | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ayatRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -229,14 +231,14 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     const firstSurah = juzData?.verses?.[0]?.surahNum;
     if (!firstSurah) return;
     if (firstSurah !== 1 && firstSurah !== 9) {
-      if (cachedBasmalahAudio) {
-        setBasmalahAudio(cachedBasmalahAudio);
+      if (cachedBasmalahAudioRef.current) {
+        setBasmalahAudio(cachedBasmalahAudioRef.current);
       } else {
         fetch("https://equran.id/api/v2/surat/1")
           .then(res => res.json())
           .then(json => {
             const audioData = json.data.ayat[0].audio;
-            cachedBasmalahAudio = audioData;
+            cachedBasmalahAudioRef.current = audioData;
             setBasmalahAudio(audioData);
           });
       }
@@ -360,7 +362,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
             {/* LIST AYAT */}
             <div className="space-y-6">
-              {juzData.verses?.[0] && juzData.verses[0].surahNum !== 1 && juzData.verses[0].surahNum !== 9 && (
+              {juzData?.verses?.[0] && juzData.verses[0].surahNum !== 1 && juzData.verses[0].surahNum !== 9 && (
                 <div className="flex flex-col items-center group/basmalah py-10">
                   <div className="text-4xl font-ayat opacity-80 leading-loose text-white/90 mb-4">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
                   <button
@@ -372,7 +374,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                 </div>
               )}
 
-              {juzData.verses.map((item: JuzVerse, index: number) => {
+              {juzData?.verses?.map((item: JuzVerse, index: number) => {
                 const isLastRead = lastReadData?.surahNo === item.surahNum && lastReadData?.ayatNo === item.nomorAyat;
                 const isCurrentlySaving = savingId === item.nomorAyat;
                 const showSaving = isCurrentlySaving && !isLastRead;
@@ -483,14 +485,14 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                 const percent = (e.clientX - rect.left) / rect.width;
                 audioRef.current.currentTime = percent * duration;
               }}>
-                <div className="h-full bg-gradient-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
+                <div className="h-full bg-linear-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
               </div>
               
               <div className="p-4 flex items-center gap-4">
                 <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-primary-2 font-black uppercase ">Ayat {juzData.verses[currentAyatIndex].nomorAyat}</p>
-                  <p className="text-sm font-bold truncate">{juzData.verses[currentAyatIndex].surahName}</p>
+                  <p className="text-[10px] text-primary-2 font-black uppercase ">{juzData?.verses?.[currentAyatIndex ?? -1] ? `Ayat ${juzData.verses[currentAyatIndex!].nomorAyat}` : 'Ayat'}</p>
+                  <p className="text-sm font-bold truncate">{juzData?.verses?.[currentAyatIndex ?? -1]?.surahName || 'Pilih ayat'}</p>
                   <p className="text-[10px] text-gray-400 mt-1">{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')} / {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
                 </div>
                 <button onClick={() => audioRef.current?.paused ? audioRef.current.play() : audioRef.current?.pause()} className="w-12 h-12 bg-white text-bg-primary rounded-full flex items-center justify-center transition shadow-lg shrink-0">

@@ -14,6 +14,7 @@ interface Doa {
     ar: string;
     tr: string;
     idn: string;
+    tentang?: string;
 }
 
 export default function DoaPage() {

@@ -55,6 +55,7 @@ interface LastReadData {
   surahNo: number;
   surahName: string;
   ayatNo: number;
+  updatedAt?: Date | string | null;
 }
 
 export default function SurahPage({ params }: { params: Promise<{ id: string }> }) {
@@ -246,14 +247,15 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   }, [id]);
 
   useEffect(() => {
-    if (isPlaying && currentAyatIndex !== null && audioRef.current) {
-      const currentPos = audioRef.current.currentTime;
-      audioRef.current.src = data.ayat[currentAyatIndex].audio[selectedQari];
-      audioRef.current.load();
-      audioRef.current.currentTime = currentPos;
-      audioRef.current.play();
-    }
-  }, [selectedQari]);
+    if (!data || !isPlaying || currentAyatIndex === null || !audioRef.current) return;
+    const currentPos = audioRef.current.currentTime;
+    const audioUrl = data.ayat[currentAyatIndex]?.audio?.[selectedQari];
+    if (!audioUrl) return;
+    audioRef.current.src = audioUrl;
+    audioRef.current.load();
+    audioRef.current.currentTime = currentPos;
+    audioRef.current.play();
+  }, [selectedQari, data, isPlaying, currentAyatIndex]);
 
   const playAudio = async (index: number) => {
     if (!data || !audioRef.current) return;
@@ -285,6 +287,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
   };
 
   const handleShare = (item: AyatItem) => {
+    if (!data) return;
     const text = `📖 *${data.namaLatin} Ayat ${item.nomorAyat}*\n\n${item.teksArab}\n\n"${item.teksIndonesia}"\n\nBaca di Al-Qur'an Ku: ${window.location.href}`;
 
     if (navigator.share) {
@@ -635,14 +638,14 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                  const percent = (e.clientX - rect.left) / rect.width;
                  audioRef.current.currentTime = percent * duration;
                }}>
-                 <div className="h-full bg-gradient-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
+                 <div className="h-full bg-linear-to-r from-primary to-primary-2 transition-all group-hover:h-1.5" style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }} />
                </div>
                
                <div className="p-4 flex items-center gap-4">
                  <img src={LIST_QARI.find(q => q.id === selectedQari)?.img} className="w-12 h-12 rounded-full object-cover border-2 border-white/20" alt="Qari" />
                  <div className="flex-1 min-w-0">
-                   <p className="text-[10px] text-primary-2 font-black uppercase">Ayat {data.ayat[currentAyatIndex].nomorAyat}</p>
-                   <p className="text-sm font-bold truncate">{data.namaLatin}</p>
+                   <p className="text-[10px] text-primary-2 font-black uppercase">{data?.ayat?.[currentAyatIndex ?? -1] ? `Ayat ${data.ayat[currentAyatIndex!].nomorAyat}` : 'Ayat'}</p>
+                   <p className="text-sm font-bold truncate">{data?.namaLatin || 'Pilih ayat'}</p>
                     <p className="text-[10px] text-gray-400 mt-1">{Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')} / {Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}</p>
                  </div>
                  <button
