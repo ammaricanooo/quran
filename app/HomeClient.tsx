@@ -60,7 +60,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                     <div className="flex justify-between items-start mb-8 gap-8">
                         <div>
                             <p className="text-gray-300 font-medium flex flex-wrap items-center gap-1 text-xs md:text-base">
-                                Assalamu'alaikum,
+                                Assalamu&apos;alaikum,
                                 {user && (
                                     <span className="hover:underline cursor-pointer">Yaa {user.displayName?.split(" ")[0]}
                                     </span>
@@ -75,7 +75,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                                     </button>
                                 )}
                             </p>
-                            <h1 className="text-3xl md:text-4xl font-bold mt-1 mb-2">Al-Qur'an Ku</h1>
+                            <h1 className="text-3xl md:text-4xl font-bold mt-1 mb-2">Al-Qur&apos;an Ku</h1>
                             <p className="text-xs text-white/30 max-w-sm">Bercerminlah pada setiap ayat Al Quran yang kita baca, karena di dalamnya terdapat petunjuk hidup yang sempurna.</p>
                         </div>
                         <div className="opacity-80 p-2 bg-white/5 rounded-2xl shrink-0">
@@ -112,11 +112,11 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 <div className="pt-2 pb-4 space-y-6 w-full">
                     {/* Search Bar */}
                     <div className="relative group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Cari Surah..."
-                            className="w-full bg-white/5 border border-white/5 rounded-3xl py-4 pl-14 pr-6 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
+                            className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -184,7 +184,7 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                 {filteredSurahs.length === 0 && (
                     <div className="text-center py-20 opacity-40 animate-pulse">
                         <Search size={48} className="mx-auto mb-4" />
-                        <p className="font-medium">Surah "{searchQuery}" tidak ditemukan</p>
+                        <p className="font-medium">Surah &quot;{searchQuery}&quot; tidak ditemukan</p>
                     </div>
                 )}
 

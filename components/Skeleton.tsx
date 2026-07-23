@@ -30,7 +30,7 @@ export function SkeletonCardList({ count = 4 }: { count?: number }) {
     <div className="space-y-6">
       {/* Search bar */}
       <div className="flex md:justify-end">
-        <div className="w-full md:w-1/2 h-11 bg-white/8 rounded-xl animate-pulse" />
+        <div className="w-full h-12 bg-white/8 rounded-4xl animate-pulse" />
       </div>
       {Array.from({ length: count }).map((_, i) => (
         <div

@@ -191,7 +191,7 @@ export default function TermsAndConditionsPage() {
                                 </h2>
                                 <div className="space-y-3 pl-4">
                                     {section.content.map((item, j) => (
-                                        <div key={j} className="bg-white/5 border border-white/5 rounded-3xl p-5">
+                                        <div key={j} className="bg-white/5 border border-white/5 rounded-4xl p-6">
                                             {item.subtitle && (
                                                 <p className="text-[10px] font-black text-secondarys-2 uppercase tracking-widest mb-2">
                                                     {item.subtitle}

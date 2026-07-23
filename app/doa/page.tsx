@@ -82,10 +82,10 @@ export default function DoaPage() {
                                 <ArrowLeft size={18} />
                             </Link>
                             <h1 className="text-xl md:text-2xl font-black">
-                                Daftar <span className="text-primary">Doa</span>
+                                Daftar <span className="text-primary-2">Doa</span>
                             </h1>
                         </div>
-                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-sm font-black text-primary uppercase">
+                        <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-[10px] font-black text-primary-2 uppercase tracking-wider">
                             {doaList.length} Doa
                         </div>
                     </header>
@@ -95,27 +95,25 @@ export default function DoaPage() {
                 <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
                     <div className="max-w-5xl mx-auto space-y-6">
                         {/* Search */}
-                        <div className="flex md:justify-end">
-                            <div className="relative w-full md:w-1/2">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                <input
-                                    type="text"
-                                    placeholder="Cari nama doa..."
-                                    className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
+                        <div className="relative group w-full mb-6">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Cari nama atau kategori doa..."
+                                className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
 
                         {/* Doa Cards */}
                         {filteredDoa.map((doa) => (
                             <div
                                 key={doa.id}
-                                className="bg-white/5 border border-white/10 rounded-4xl p-6 hover:bg-white/10 transition-all duration-300 shadow-xl"
+                                className="bg-white/5 border border-white/5 hover:border-white/10 rounded-4xl p-6 hover:bg-white/10 transition-all duration-300 shadow-xl"
                             >
                                 {/* Badge grup */}
-                                <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/30 inline-block mb-4">
+                                <span className="px-3 py-1 bg-primary/20 text-primary-2 text-[9px] font-black uppercase tracking-widest rounded-xl border border-primary/30 inline-block mb-4">
                                     {doa.grup}
                                 </span>
 

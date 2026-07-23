@@ -90,7 +90,7 @@ export default function GameHomePage() {
                         </div>
 
                         {/* Info */}
-                        <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-2">
+                        <div className="bg-white/5 border border-white/5 rounded-4xl p-6 space-y-2">
                             <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Sistem Skor</p>
                             <ul className="text-sm text-gray-400 space-y-1.5">
                                 <li>Jawaban benar: <strong className="text-white">500 poin dasar</strong></li>

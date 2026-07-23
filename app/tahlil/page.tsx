@@ -39,27 +39,30 @@ export default function TahlilPage() {
         <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
           <header className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
-                <ArrowLeft size={20} />
+              <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
+                <ArrowLeft size={18} />
               </Link>
-              <h1 className="text-xl md:text-3xl font-black text-center">
-                Bacaan <span className="text-primary">Tahlil</span>
+              <h1 className="text-xl md:text-2xl font-black">
+                Bacaan <span className="text-primary-2">Tahlil</span>
               </h1>
+            </div>
+            <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-[10px] font-black text-primary-2 uppercase tracking-wider">
+              {sections.length} Bacaan
             </div>
           </header>
         </div>
 
         {/* ── SCROLLABLE CONTENT ── */}
         <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-8">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto space-y-6">
             {/* Card Info */}
-            <div className="relative overflow-hidden bg-linear-to-br from-primary to-secondary p-8 rounded-4xl mb-10 shadow-2xl">
+            <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 to-primary-2/20 border border-primary-2/30 p-8 rounded-4xl shadow-2xl">
               <div className="relative z-10 flex flex-col items-center text-center">
-                <h2 className="text-4xl font-bold mb-1">Tahlil</h2>
-                <p className="text-lg opacity-90 mb-4">Bacaan untuk Arwah</p>
-                <div className="h-px w-full max-w-50 bg-white/30 mb-4"></div>
-                <div className="flex gap-4 text-sm font-medium uppercase tracking-widest">
-                  <span>{sections.length} Bacaan</span>
+                <h2 className="text-3xl font-black mb-1">Tahlil Lengkap</h2>
+                <p className="text-sm text-gray-400 mb-4">Dua & Bacaan Khusus Arwah</p>
+                <div className="h-px w-full max-w-50 bg-white/10 mb-4"></div>
+                <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-primary-2">
+                  <span>{sections.length} Susunan Bacaan</span>
                 </div>
                 <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-ayat select-none">لا إله إلا الله</div>
               </div>

@@ -50,10 +50,10 @@ export default function JuzListPage() {
                                 <ArrowLeft size={18} />
                             </Link>
                             <h1 className="text-xl md:text-2xl font-black">
-                                Daftar <span className="text-primary">Juz</span>
+                                Daftar <span className="text-primary-2">Juz</span>
                             </h1>
                         </div>
-                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-primary uppercase">
+                        <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-[10px] font-black text-primary-2 uppercase tracking-wider">
                             30 Juz
                         </div>
                     </header>
@@ -66,17 +66,15 @@ export default function JuzListPage() {
                     ) : (
                         <div className="max-w-5xl mx-auto">
                             {/* Search */}
-                            <div className="flex md:justify-end mb-6">
-                                <div className="relative w-full md:w-64">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                    <input
-                                        type="text"
-                                        placeholder="Cari nomor juz..."
-                                        className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                            <div className="relative group w-full mb-6">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Cari nomor atau nama juz..."
+                                    className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
@@ -84,19 +82,19 @@ export default function JuzListPage() {
                                     <Link
                                         key={juz.number}
                                         href={`/juz/${juz.number}`}
-                                        className="group bg-white/5 border border-white/5 p-5 rounded-3xl hover:bg-white/10 transition-all duration-300 shadow-xl"
+                                        className="group bg-white/5 border border-white/5 p-6 rounded-4xl hover:bg-white/10 hover:border-white/10 transition-all duration-300 shadow-xl flex flex-col justify-between"
                                     >
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black text-sm border border-primary/20">
+                                            <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary-2 font-black text-sm border border-primary/20">
                                                 {juz.number}
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[9px] font-black text-primary-2 uppercase">Mulai Dari</p>
+                                                <p className="text-[9px] font-black text-primary-2 uppercase tracking-wider">Mulai Dari</p>
                                                 <p className="text-xs font-bold">{juz.name_start_id} : {juz.verse_start}</p>
                                             </div>
                                         </div>
 
-                                        <h3 className="text-lg font-bold mb-1 group-hover:text-primary transition-colors">{juz.name}</h3>
+                                        <h3 className="text-lg font-bold mb-1 group-hover:text-primary-2 transition-colors">{juz.name}</h3>
                                         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mb-4">
                                             {juz.name_start_id} — {juz.name_end_id}
                                         </p>

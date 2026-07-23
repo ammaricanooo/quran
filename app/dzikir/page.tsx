@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Wind, Share2 } from "lucide-react";
+import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Share2 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { dzikirData as localDzikirData, DzikirItem } from "@/lib/dzikir/dzikir-data";
@@ -59,17 +59,19 @@ export default function DzikirPage() {
                             <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                                 <ArrowLeft size={18} />
                             </Link>
-                            <h1 className="text-xl md:text-2xl font-black">Dzikir</h1>
+                            <h1 className="text-xl md:text-2xl font-black">
+                                Bacaan <span className="text-primary-2">Dzikir</span>
+                            </h1>
                         </div>
 
                         {/* Tab Filter */}
-                        <div className="flex bg-black/20 p-1 rounded-xl border border-white/5">
+                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
                             {categories.map((cat) => (
                                 <button
                                     key={cat.id}
                                     onClick={() => setActiveTab(cat.id)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                                        activeTab === cat.id ? "bg-primary-2 text-white shadow-lg" : "text-gray-500 hover:text-white"
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                                        activeTab === cat.id ? "bg-primary/20 border border-primary/30 text-primary-2 shadow-md" : "text-gray-400 hover:text-white"
                                     }`}
                                 >
                                     {cat.icon}
@@ -162,7 +164,7 @@ export default function DzikirPage() {
                                             {item.arab}
                                         </p>
                                         <p className="text-xs text-gray-400 italic leading-relaxed border-l-2 border-primary-2/30 pl-3">
-                                            "{item.indo}"
+                                            &quot;{item.indo}&quot;
                                         </p>
 
                                         {/* Action row */}

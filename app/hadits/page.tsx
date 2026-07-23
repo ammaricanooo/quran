@@ -17,8 +17,10 @@ interface HaditsItem { number: number; arab: string; id: string; judul: string; 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 function HaditsSkeleton() {
     return (
-        <div className="space-y-6">
-            <div className="w-full md:w-1/2 h-11 bg-white/8 rounded-xl animate-pulse ml-auto" />
+        <div className="space-y-5">
+            <div className="relative w-full">
+                <div className="w-full h-12 md:h-12 rounded-4xl border border-white/10 bg-white/6 animate-pulse" />
+            </div>
             {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="bg-white/5 border border-white/5 rounded-4xl p-6 md:p-8 space-y-4"
                     style={{ animationDelay: `${i * 80}ms` }}>
@@ -152,20 +154,26 @@ export default function HaditsPage() {
             .catch(() => setLoading(false));
     }, [activeKitab, page, searchQuery]);
 
-    useEffect(() => { fetchHadits(); }, [fetchHadits]);
+    // Fetch hadits saat kitab/page/searchQuery berubah
+    useEffect(() => {
+        fetchHadits();
+    }, [fetchHadits]);
 
-    // Reset halaman saat ganti kitab atau search
+    // Auto search dengan debounce 300ms
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setPage(1);
+            setSearchQuery(searchInput);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchInput]);
+
+    // Reset halaman saat ganti kitab
     const handleKitabChange = (slug: string) => {
         setActiveKitab(slug);
         setPage(1);
         setSearchQuery("");
         setSearchInput("");
-    };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setPage(1);
-        setSearchQuery(searchInput);
     };
 
     const handleShare = (item: HaditsItem) => {
@@ -194,7 +202,7 @@ export default function HaditsPage() {
                                 Hadits <span className="text-primary-2">{kitabName}</span>
                             </h1>
                         </div>
-                        <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-primary-2 uppercase">
+                        <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-[10px] font-black text-primary-2 uppercase tracking-wider">
                             {totalHadits.toLocaleString()} Hadits
                         </div>
                     </header>
@@ -230,108 +238,104 @@ export default function HaditsPage() {
                         </div>
 
                         {/* ── SEARCH ── */}
-                        <form onSubmit={handleSearch} className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
-                                <input
-                                    type="text"
-                                    placeholder="Cari judul, terjemahan, atau nomor..."
-                                    className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
-                                    value={searchInput}
-                                    onChange={e => setSearchInput(e.target.value)}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="px-4 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 rounded-xl text-xs font-black text-primary-2 transition-all active:scale-95 shrink-0"
-                            >
-                                Cari
-                            </button>
-                        </form>
-
-                        {/* ── INFO BAR ── */}
-                        {searchQuery && (
-                            <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>Hasil pencarian: <strong className="text-white">"{searchQuery}"</strong> — {totalHadits} ditemukan</span>
-                                <button
-                                    onClick={() => { setSearchQuery(""); setSearchInput(""); setPage(1); }}
-                                    className="text-rose-400 hover:text-rose-300 font-bold transition"
-                                >
-                                    Hapus
-                                </button>
-                            </div>
-                        )}
-
-                        {/* ── HADITS LIST ── */}
                         {loading ? (
                             <HaditsSkeleton />
-                        ) : haditsList.length > 0 ? (
-                            <>
-                                {haditsList.map((item) => (
-                                    <div
-                                        key={`${activeKitab}-${item.number}`}
-                                        className="group p-6 md:p-8 rounded-4xl bg-white/5 border border-white/5 relative overflow-hidden"
-                                    >
-                                        {/* Nomor + judul */}
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-primary-2 flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20 shrink-0">
-                                                {item.number}
-                                            </div>
-                                            <h2 className="text-sm md:text-base font-bold text-primary-2 flex-1 leading-snug">{item.judul}</h2>
-                                        </div>
-
-                                        {/* Arab */}
-                                        <div className="relative mb-6">
-                                            <Quote className="absolute -top-4 -left-2 text-primary-2/10 w-12 h-12 rotate-180" />
-                                            <p className="text-2xl md:text-3xl text-right font-ayat leading-loose text-white/90" dir="rtl">
-                                                {item.arab}
-                                            </p>
-                                        </div>
-
-                                        {/* Terjemahan */}
-                                        <div className="space-y-1 border-l-2 border-primary/30 pl-4 py-1 mb-6">
-                                            <p className="text-[10px] font-black text-primary-2 uppercase tracking-widest mb-1">Terjemahan</p>
-                                            <p className="text-sm text-gray-300 leading-relaxed text-justify">{item.id}</p>
-                                        </div>
-
-                                        {/* Action row */}
-                                        <div className="flex items-center gap-2 pt-4 border-t border-white/5">
-                                            <button
-                                                onClick={() => handleShare(item)}
-                                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
-                                            >
-                                                <Share2 size={14} />
-                                                <span className="hidden md:flex">Bagikan</span>
-                                            </button>
-                                        </div>
-
-                                        <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
-                                            <BookOpen size={120} />
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {/* Pagination */}
-                                <Pagination page={page} pages={pages} onChange={(p) => { setPage(p); window.scrollTo(0, 0); }} />
-
-                                {/* Info halaman */}
-                                <p className="text-center text-[10px] text-gray-600 font-bold pb-2">
-                                    Halaman {page} dari {pages} · {totalHadits.toLocaleString()} hadits
-                                </p>
-                            </>
                         ) : (
-                            <div className="text-center py-20 opacity-40">
-                                <BookOpen size={48} className="mx-auto mb-4" />
-                                <p className="font-bold">Hadits tidak ditemukan</p>
+                            <>
+                                <div className="relative group w-full">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
+                                    <input
+                                        type="text"
+                                        placeholder="Cari judul, terjemahan, atau nomor..."
+                                        className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
+                                        value={searchInput}
+                                        onChange={e => setSearchInput(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* ── INFO BAR ── */}
                                 {searchQuery && (
-                                    <button
-                                        onClick={() => { setSearchQuery(""); setSearchInput(""); }}
-                                        className="mt-4 text-primary-2 text-sm font-bold hover:underline"
-                                    >
-                                        Hapus pencarian
-                                    </button>
+                                    <div className="flex items-center justify-between text-xs text-gray-500">
+                                        <span>Hasil pencarian: <strong className="text-white">"{searchQuery}"</strong> — {totalHadits} ditemukan</span>
+                                        <button
+                                            onClick={() => { setSearchQuery(""); setSearchInput(""); setPage(1); }}
+                                            className="text-rose-400 hover:text-rose-300 font-bold transition"
+                                        >
+                                            Hapus
+                                        </button>
+                                    </div>
                                 )}
-                            </div>
+
+                                {/* ── HADITS LIST ── */}
+                                {haditsList.length > 0 ? (
+                                    <>
+                                        {haditsList.map((item) => (
+                                            <div
+                                                key={`${activeKitab}-${item.number}`}
+                                                className="group p-6 md:p-8 rounded-4xl bg-white/5 border border-white/5 relative overflow-hidden"
+                                            >
+                                                {/* Nomor + judul */}
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary to-primary-2 flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20 shrink-0">
+                                                        {item.number}
+                                                    </div>
+                                                    <h2 className="text-sm md:text-base font-bold text-primary-2 flex-1 leading-snug">{item.judul}</h2>
+                                                </div>
+
+                                                {/* Arab */}
+                                                <div className="relative mb-6">
+                                                    <Quote className="absolute -top-4 -left-2 text-primary-2/10 w-12 h-12 rotate-180" />
+                                                    <p className="text-2xl md:text-3xl text-right font-ayat leading-loose text-white/90" dir="rtl">
+                                                        {item.arab}
+                                                    </p>
+                                                </div>
+
+                                                {/* Terjemahan */}
+                                                <div className="space-y-1 border-l-2 border-primary/30 pl-4 py-1 mb-6">
+                                                    <p className="text-[10px] font-black text-primary-2 uppercase tracking-widest mb-1">Terjemahan</p>
+                                                    <p className="text-sm text-gray-300 leading-relaxed text-justify">{item.id}</p>
+                                                </div>
+
+                                                {/* Action row */}
+                                                <div className="flex items-center gap-2 pt-4 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => handleShare(item)}
+                                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
+                                                    >
+                                                        <Share2 size={14} />
+                                                        <span className="hidden md:flex">Bagikan</span>
+                                                    </button>
+                                                </div>
+
+                                                <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+                                                    <BookOpen size={120} />
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* Pagination */}
+                                        <Pagination page={page} pages={pages} onChange={(p) => { setPage(p); window.scrollTo(0, 0); }} />
+
+                                        {/* Info halaman */}
+                                        <p className="text-center text-[10px] text-gray-600 font-bold pb-2">
+                                            Halaman {page} dari {pages} · {totalHadits.toLocaleString()} hadits
+                                        </p>
+                                    </>
+                                ) : (
+                                    <div className="text-center py-20 opacity-40">
+                                        <BookOpen size={48} className="mx-auto mb-4" />
+                                        <p className="font-bold">Hadits tidak ditemukan</p>
+                                        {searchQuery && (
+                                            <button
+                                                onClick={() => { setSearchQuery(""); setSearchInput(""); }}
+                                                className="mt-4 text-primary-2 text-sm font-bold hover:underline"
+                                            >
+                                                Hapus pencarian
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </>
                         )}
 
                         <Footer />

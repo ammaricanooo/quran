@@ -172,7 +172,7 @@ export default function AsmaulHusnaPage() {
                                     </span>
                                 </div>
                             )}
-                            <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-black text-primary-2 uppercase">
+                            <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-[10px] font-black text-primary-2 uppercase tracking-wider">
                                 99 Nama
                             </div>
                         </div>
@@ -200,12 +200,12 @@ export default function AsmaulHusnaPage() {
                         )}
 
                         {/* Search */}
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+                        <div className="relative group w-full mb-6">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
                             <input
                                 type="text"
                                 placeholder="Cari nama, arti, atau nomor..."
-                                className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:bg-white/10 transition-all text-sm"
+                                className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
