@@ -210,23 +210,20 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
     }
   }, [fromLastRead, data, lastReadData, searchParams]);
 
-  // Fungsi khusus untuk putar Basmalah
   const playBasmalah = () => {
     if (!basmalahAudio || !audioRef.current) return;
-
+    const audio = audioRef.current;
     setCurrentAyatIndex(null);
-
-    // Set audio ke basmalah sesuai qari yang dipilih
-    audioRef.current.src = basmalahAudio[selectedQari];
-    audioRef.current.load();
-    audioRef.current.play();
-
-    // Opsional: Setelah Basmalah selesai, otomatis lanjut ke ayat 1
+    audio.pause();
+    audio.src = basmalahAudio[selectedQari];
     const handleBasmalahEnd = () => {
-      playAudio(0); // Putar ayat 1
-      audioRef.current?.removeEventListener('ended', handleBasmalahEnd);
+      playAudio(0);
+      audio.removeEventListener("ended", handleBasmalahEnd);
     };
-    audioRef.current.addEventListener('ended', handleBasmalahEnd);
+    audio.addEventListener("ended", handleBasmalahEnd);
+    audio.play().catch((e: any) => {
+      if (e?.name !== "AbortError") console.error(e);
+    });
   };
 
   useEffect(() => {
@@ -248,41 +245,51 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
 
   useEffect(() => {
     if (!data || !isPlaying || currentAyatIndex === null || !audioRef.current) return;
-    const currentPos = audioRef.current.currentTime;
+    const audio = audioRef.current;
     const audioUrl = data.ayat[currentAyatIndex]?.audio?.[selectedQari];
     if (!audioUrl) return;
-    audioRef.current.src = audioUrl;
-    audioRef.current.load();
-    audioRef.current.currentTime = currentPos;
-    audioRef.current.play();
-  }, [selectedQari, data, isPlaying, currentAyatIndex]);
+    const prevTime = audio.currentTime;
+    audio.pause();
+    audio.src = audioUrl;
+    // Setelah metadata loaded, lanjut dari posisi sebelumnya
+    const onLoaded = () => {
+      audio.currentTime = prevTime;
+      audio.play().catch((e: any) => {
+        if (e?.name !== "AbortError") console.error(e);
+      });
+      audio.removeEventListener("loadedmetadata", onLoaded);
+    };
+    audio.addEventListener("loadedmetadata", onLoaded);
+  }, [selectedQari]);
 
   const playAudio = async (index: number) => {
     if (!data || !audioRef.current) return;
-
+    const audio = audioRef.current;
     const audioUrl = data.ayat[index].audio[selectedQari];
 
-    if (currentAyatIndex !== index) {
-      audioRef.current.pause();
-      audioRef.current.src = audioUrl;
-      audioRef.current.load();
-      setCurrentTime(0);
+    // Kalau ayat sama dan sedang bermain, pause saja
+    if (currentAyatIndex === index && !audio.paused) {
+      audio.pause();
+      return;
     }
 
+    // Pastikan audio dihentikan dulu sebelum load ulang
+    audio.pause();
+    audio.src = audioUrl;
+    setCurrentTime(0);
     setCurrentAyatIndex(index);
 
     try {
-      await audioRef.current.play();
+      await audio.play();
       setIsPlaying(true);
-
       if (isAyatInViewport(index)) {
-        ayatRefs.current[index]?.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
+        ayatRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-    } catch (err) {
-      console.error("Playback error:", err);
+    } catch (err: any) {
+      // AbortError normal terjadi saat load() membatalkan play() sebelumnya — abaikan
+      if (err?.name !== "AbortError") {
+        console.error("Playback error:", err);
+      }
     }
   };
 

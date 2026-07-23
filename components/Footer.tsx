@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Facebook, Linkedin, SquareArrowOutUpRight, Gamepad2, Shield, ScrollText } from "lucide-react";
+import { Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Linkedin, Gamepad2, Shield, ScrollText, AtSign } from "lucide-react";
 
 export default function Footer() {
     const menuItems = [
@@ -16,7 +16,7 @@ export default function Footer() {
         { href: "https://linkedin.com/in/ammaricano", icon: <Linkedin />, label: "LinkedIn" },
         { href: "https://github.com/ammaricanooo", icon: <Github />, label: "Github" },
         { href: "https://instagram.com/ammaricano", icon: <Instagram />, label: "Instagram" },
-        { href: "https://threads.com/@ammaricano", icon: <SquareArrowOutUpRight />, label: "Threads" },
+        { href: "https://threads.com/@ammaricano", icon: <AtSign />, label: "Threads" },
     ];
 
     return (
@@ -91,17 +91,6 @@ export default function Footer() {
                 <hr className="my-6 border-white/10 sm:mx-auto lg:my-8" />
                 <div className="sm:flex sm:items-center sm:justify-between">
                     <span className="text-sm text-body sm:text-center">Made by Ammar Abdul Malik. All Rights Reserved.</span>
-                    <div className="flex mt-4 sm:justify-center sm:mt-0">
-                        <a href="https://github.com/ammaricanooo" className="text-body hover:text-heading" target="_blank" rel="noopener noreferrer">
-                            <Github />
-                        </a>
-                        <a href="https://instagram.com/ammaricano" className="text-body hover:text-heading ms-5" target="_blank" rel="noopener noreferrer">
-                            <Instagram />
-                        </a>
-                        <a href="https://facebook.com/ammaricano.27" className="text-body hover:text-heading ms-5" target="_blank" rel="noopener noreferrer">
-                            <Facebook />
-                        </a>
-                    </div>
                 </div>
             </div>
         </footer>

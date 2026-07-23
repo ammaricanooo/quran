@@ -15,18 +15,20 @@ import {
   X,
   Gamepad2,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 
 const menuItems = [
-  { name: "Home",   icon: <Home size={20} />,      href: "/" },
-  { name: "Doa",    icon: <BookOpen size={20} />,   href: "/doa" },
-  { name: "Kiblat", icon: <Compass size={20} />,    href: "https://qiblafinder.withgoogle.com/", external: true },
-  { name: "Jadwal", icon: <Clock size={20} />,      href: "/jadwal" },
-  { name: "Juz",    icon: <Layers size={20} />,     href: "/juz" },
-  { name: "Dzikir", icon: <Wind size={20} />,       href: "/dzikir" },
-  { name: "Hadits", icon: <Quote size={20} />,      href: "/hadits" },
-  { name: "Tahlil", icon: <ScrollText size={20} />,   href: "/tahlil" },
-  { name: "Kuis",   icon: <Gamepad2 size={20} />,   href: "/game" },
+  { name: "Home",         icon: <Home size={20} />,        href: "/" },
+  { name: "Doa",          icon: <BookOpen size={20} />,     href: "/doa" },
+  { name: "Kiblat",       icon: <Compass size={20} />,      href: "https://qiblafinder.withgoogle.com/", external: true },
+  { name: "Jadwal",       icon: <Clock size={20} />,        href: "/jadwal" },
+  { name: "Juz",          icon: <Layers size={20} />,       href: "/juz" },
+  { name: "Dzikir",       icon: <Wind size={20} />,         href: "/dzikir" },
+  { name: "Hadits",       icon: <Quote size={20} />,        href: "/hadits" },
+  { name: "Asmaul Husna", icon: <Sparkles size={20} />,     href: "/asmaul-husna" },
+  { name: "Tahlil",       icon: <ScrollText size={20} />,   href: "/tahlil" },
+  { name: "Kuis",         icon: <Gamepad2 size={20} />,     href: "/game" },
 ];
 
 // Bottom nav items (5 items max for mobile) — menu utama yang selalu terlihat
@@ -40,11 +42,12 @@ const bottomNavItems = [
 
 // Menu yang TIDAK tampil di bottom nav, akan muncul di bottom sheet
 const extraMenuItems = [
-  { name: "Doa",    icon: <BookOpen size={22} />,  href: "/doa",    accent: "from-blue-500/20 to-blue-600/5 border-blue-500/20",       iconColor: "text-blue-400" },
-  { name: "Kiblat", icon: <Compass size={22} />,   href: "https://qiblafinder.withgoogle.com/", external: true, accent: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20", iconColor: "text-emerald-400" },
-  { name: "Hadits", icon: <Quote size={22} />,     href: "/hadits", accent: "from-rose-500/20 to-rose-600/5 border-rose-500/20",       iconColor: "text-rose-400" },
-  { name: "Tahlil", icon: <ScrollText size={22} />, href: "/tahlil", accent: "from-pink-500/20 to-pink-600/5 border-pink-500/20",       iconColor: "text-pink-400" },
-  { name: "Kuis",   icon: <Gamepad2 size={22} />,  href: "/game",   accent: "from-violet-500/20 to-violet-600/5 border-violet-500/20", iconColor: "text-violet-400" },
+  { name: "Doa",          icon: <BookOpen size={22} />,  href: "/doa",          accent: "from-blue-500/20 to-blue-600/5 border-blue-500/20",       iconColor: "text-blue-400" },
+  { name: "Kiblat",       icon: <Compass size={22} />,   href: "https://qiblafinder.withgoogle.com/", external: true, accent: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20", iconColor: "text-emerald-400" },
+  { name: "Hadits",       icon: <Quote size={22} />,     href: "/hadits",       accent: "from-rose-500/20 to-rose-600/5 border-rose-500/20",       iconColor: "text-rose-400" },
+  { name: "Asmaul Husna", icon: <Sparkles size={22} />,  href: "/asmaul-husna", accent: "from-amber-500/20 to-amber-600/5 border-amber-500/20",    iconColor: "text-amber-400" },
+  { name: "Tahlil",       icon: <ScrollText size={22} />, href: "/tahlil",      accent: "from-pink-500/20 to-pink-600/5 border-pink-500/20",       iconColor: "text-pink-400" },
+  { name: "Kuis",         icon: <Gamepad2 size={22} />,  href: "/game",         accent: "from-violet-500/20 to-violet-600/5 border-violet-500/20", iconColor: "text-violet-400" },
 ];
 
 interface NavbarProps {
