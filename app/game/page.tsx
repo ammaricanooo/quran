@@ -57,7 +57,7 @@ export default function GameHomePage() {
 
                         {/* Multiplayer Banner */}
                         <Link href="/game/multiplayer"
-                            className="group flex items-center gap-5 p-6 rounded-4xl bg-gradient-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 hover:brightness-110 active:scale-[0.98] transition-all shadow-xl overflow-hidden relative">
+                            className="group flex items-center gap-5 p-6 rounded-4xl bg-linear-to-br from-rose-500/20 to-rose-600/5 border border-rose-500/30 hover:brightness-110 active:scale-[0.98] transition-all shadow-xl overflow-hidden relative">
                             <div className="w-16 h-16 rounded-3xl bg-rose-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                                 <Swords size={32} className="text-rose-400" />
                             </div>
@@ -76,7 +76,7 @@ export default function GameHomePage() {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 {soloModes.map((mode) => (
                                     <Link key={mode.href} href={mode.href}
-                                        className={`group flex flex-col gap-4 p-5 rounded-4xl bg-gradient-to-br ${mode.accent} border hover:brightness-110 active:scale-[0.98] transition-all shadow-xl`}>
+                                        className={`group flex flex-col gap-4 p-5 rounded-4xl bg-linear-to-br ${mode.accent} border hover:brightness-110 active:scale-[0.98] transition-all shadow-xl`}>
                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${mode.iconBg} group-hover:scale-110 transition-transform`}>
                                             {mode.icon}
                                         </div>
@@ -99,7 +99,9 @@ export default function GameHomePage() {
                                 <li>Skor maksimum per soal: <strong className="text-white">1.000 poin</strong></li>
                             </ul>
                         </div>
-            <Footer />
+
+                        <div className="mb-8" />
+                        <Footer />
                     </div>
                 </div>
             </main>

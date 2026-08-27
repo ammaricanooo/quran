@@ -61,6 +61,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8
     },
     {
+      url: `${baseUrl}/maulid`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/articles`,
+      lastModified: now,
+      changeFrequency: "hourly" as const,
+      priority: 0.8
+    },
+    {
       url: `${baseUrl}/privacy-policy`,
       lastModified: now,
       changeFrequency: "yearly" as const,

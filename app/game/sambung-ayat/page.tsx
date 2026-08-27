@@ -293,7 +293,7 @@ export default function SambungAyatPage() {
                             <Link href="/game" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                                 <ArrowLeft size={18} />
                             </Link>
-                            <h1 className="text-xl font-black">
+                            <h1 className="text-xl md:text-2xl font-black">
                                 Sambung <span className="text-violet-400">Ayat</span>
                             </h1>
                         </div>
@@ -302,7 +302,7 @@ export default function SambungAyatPage() {
                                 <div className="flex items-center gap-1.5 text-xs font-black text-violet-400">
                                     <Trophy size={14} /> {score}
                                 </div>
-                                <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-xs font-black text-gray-400">
+                                <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-xs font-black text-gray-400">
                                     {current + 1} / {TOTAL_QUESTIONS}
                                 </div>
                             </div>

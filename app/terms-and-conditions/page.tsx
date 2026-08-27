@@ -206,6 +206,7 @@ export default function TermsAndConditionsPage() {
                             </div>
                         ))}
 
+                        <div className="mb-8" />
                         <Footer />
                     </div>
                 </div>

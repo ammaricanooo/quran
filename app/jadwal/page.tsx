@@ -454,8 +454,8 @@ export default function JadwalSholatPage() {
                 <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
                     <div className="max-w-5xl mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-white/8 rounded-xl animate-pulse" />
-                            <div className="h-6 w-40 bg-white/8 rounded-xl animate-pulse" />
+                            <div className="w-9 h-9 bg-white/10 rounded-xl animate-pulse" />
+                            <div className="h-6 w-40 bg-white/10 rounded-xl animate-pulse" />
                         </div>
                     </div>
                 </div>
@@ -479,7 +479,7 @@ export default function JadwalSholatPage() {
                                 <ArrowLeft size={18} />
                             </Link>
                             <h1 className="text-xl md:text-2xl font-black">
-                                Jadwal <span className="text-primary">Sholat</span>
+                                Jadwal <span className="text-primary-2">Sholat</span>
                             </h1>
                         </div>
                     </header>
@@ -495,10 +495,10 @@ export default function JadwalSholatPage() {
                         >
                             <DynamicDesertBg timeOfDay={timeOfDay} />
                             <div className="absolute bottom-3 right-3 bg-white/5 p-3 rounded-2xl border border-white/5 text-right">
-                                <p className="text-2xl font-mono font-black ">
+                                <p className="text-2xl font-mono font-black">
                                     {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                                 </p>
-                                <p className="text-xs font-mono font-semibold ">
+                                <p className="text-xs font-mono font-bold">
                                     {tglHariIni} {dataSholat?.bulan_nama} {dataSholat?.tahun}
                                 </p>
                                 <p className="text-xs font-mono opacity-70">
@@ -510,7 +510,7 @@ export default function JadwalSholatPage() {
                         {/* Location Info */}
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-2 group">
-                                <div className="p-2 bg-primary/20 rounded-lg group-hover:bg-primary transition">
+                                <div className="p-2 bg-primary/20 rounded-xl group-hover:bg-primary transition">
                                     <MapPin size={14} className="text-primary-2 group-hover:text-white" />
                                 </div>
                                 <div className="flex flex-col">
@@ -521,7 +521,7 @@ export default function JadwalSholatPage() {
 
                             {nextSholat && (
                                 <div className="text-right">
-                                    <span className="text-[9px] font-black text-primary-2 uppercase  block mb-1">Mendekati {nextSholat.name}</span>
+                                    <span className="text-[9px] font-black text-primary-2 uppercase block mb-1">Mendekati {nextSholat.name}</span>
                                     <div className="bg-primary-2 text-bg-primary px-3 py-1 rounded-full text-xs font-black animate-pulse inline-block">
                                         {nextSholat.hours > 0 ? `${nextSholat.hours}j ` : ""}{nextSholat.minutes}m lagi
                                     </div>
@@ -558,7 +558,7 @@ export default function JadwalSholatPage() {
                                 )}
                             </div>
                         ) : (
-                            <div className="space-y-12">
+                            <div className="space-y-6">
 
                                 {/* List Waktu Sholat */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -647,6 +647,7 @@ export default function JadwalSholatPage() {
                                 </div>
                             </div>
                         )}
+                        <div className="mb-8" />
                         <Footer />
                     </div>
                 </div>

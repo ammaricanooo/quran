@@ -16,6 +16,9 @@ import {
   Gamepad2,
   ScrollText,
   Sparkles,
+  BookHeart,
+  Newspaper,
+  User,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,25 +31,31 @@ const menuItems = [
   { name: "Hadits",       icon: <Quote size={20} />,        href: "/hadits" },
   { name: "Asmaul Husna", icon: <Sparkles size={20} />,     href: "/asmaul-husna" },
   { name: "Tahlil",       icon: <ScrollText size={20} />,   href: "/tahlil" },
+  { name: "Maulid",       icon: <BookHeart size={20} />,     href: "/maulid" },
+  { name: "Artikel",      icon: <Newspaper size={20} />,      href: "/articles" },
   { name: "Kuis",         icon: <Gamepad2 size={20} />,     href: "/game" },
+  { name: "Profil",       icon: <User size={20} />,         href: "/profil" },
 ];
 
 // Bottom nav items (5 items max for mobile) — menu utama yang selalu terlihat
 const bottomNavItems = [
   { name: "Home",   icon: <Home size={22} />,   href: "/" },
   { name: "Juz",    icon: <Layers size={22} />, href: "/juz" },
-  { name: "Jadwal", icon: <Clock size={22} />,  href: "/jadwal" },
-  { name: "Dzikir", icon: <Wind size={22} />,   href: "/dzikir" },
   { name: "Lainnya", icon: <Menu size={22} />,  href: null }, // opens bottom sheet
+  { name: "Jadwal", icon: <Clock size={22} />,  href: "/jadwal" },
+  { name: "Profil", icon: <User size={22} />,   href: "/profil" },
 ];
 
 // Menu yang TIDAK tampil di bottom nav, akan muncul di bottom sheet
 const extraMenuItems = [
   { name: "Doa",          icon: <BookOpen size={22} />,  href: "/doa",          accent: "from-blue-500/20 to-blue-600/5 border-blue-500/20",       iconColor: "text-blue-400" },
+  { name: "Dzikir",       icon: <Wind size={22} />,      href: "/dzikir",       accent: "from-teal-500/20 to-teal-600/5 border-teal-500/20",        iconColor: "text-teal-400" },
   { name: "Kiblat",       icon: <Compass size={22} />,   href: "https://qiblafinder.withgoogle.com/", external: true, accent: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20", iconColor: "text-emerald-400" },
   { name: "Hadits",       icon: <Quote size={22} />,     href: "/hadits",       accent: "from-rose-500/20 to-rose-600/5 border-rose-500/20",       iconColor: "text-rose-400" },
   { name: "Asmaul Husna", icon: <Sparkles size={22} />,  href: "/asmaul-husna", accent: "from-amber-500/20 to-amber-600/5 border-amber-500/20",    iconColor: "text-amber-400" },
   { name: "Tahlil",       icon: <ScrollText size={22} />, href: "/tahlil",      accent: "from-pink-500/20 to-pink-600/5 border-pink-500/20",       iconColor: "text-pink-400" },
+  { name: "Maulid",       icon: <BookHeart size={22} />,   href: "/maulid",      accent: "from-cyan-500/20 to-cyan-600/5 border-cyan-500/20",       iconColor: "text-cyan-400" },
+  { name: "Artikel",      icon: <Newspaper size={22} />,    href: "/articles",    accent: "from-sky-500/20 to-sky-600/5 border-sky-500/20",         iconColor: "text-sky-400" },
   { name: "Kuis",         icon: <Gamepad2 size={22} />,  href: "/game",         accent: "from-violet-500/20 to-violet-600/5 border-violet-500/20", iconColor: "text-violet-400" },
 ];
 
@@ -72,21 +81,18 @@ export default function Navbar({ activeItem, hideSidebar }: NavbarProps) {
         <aside
           className={`
             fixed inset-y-0 left-0 z-50 w-72
-            bg-gradient-to-b from-bg-primary-2 to-bg-primary
+            bg-linear-to-b from-bg-primary-2 to-bg-primary
             border-r border-white/5 text-white
             transition-transform duration-300
             lg:translate-x-0
             ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           `}
         >
-          <div className="flex flex-col h-full p-6">
+          <div className="flex flex-col h-full p-6 pt-8">
             {/* Sidebar header */}
             <div className="flex items-center justify-between mb-8">
               <Link href="/" className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-primary/20 border border-primary/30 rounded-xl flex items-center justify-center">
-                  <BookOpen size={18} className="text-primary-2" />
-                </div>
-                <span className="text-lg font-black">Al-Qur'an Ku</span>
+                <span className="text-lg font-black">Al-Qur&apos;an Ku</span>
               </Link>
               <button
                 onClick={() => setIsSidebarOpen(false)}
@@ -232,7 +238,7 @@ export default function Navbar({ activeItem, hideSidebar }: NavbarProps) {
                 onClick={() => setIsBottomSheetOpen(false)}
                 className={`
                   flex flex-col items-center gap-2.5 p-4 rounded-3xl
-                  bg-gradient-to-b ${item.accent} border
+                  bg-linear-to-b ${item.accent} border
                   hover:brightness-125 active:scale-95
                   transition-all duration-200 group text-center
                 `}

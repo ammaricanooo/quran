@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Share2 } from "lucide-react";
+import { ArrowLeft, Sun, Moon, CheckCircle2, RotateCcw, Sparkles, Share2, BookmarkPlus } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import LoginModal from "@/components/LoginModal";
 import { dzikirData as localDzikirData, DzikirItem } from "@/lib/dzikir/dzikir-data";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, onSnapshot, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { BookmarkItem } from "@/lib/bookmark-types";
+import { shareOrCopy } from "@/lib/share-utils";
 
 export default function DzikirPage() {
     const dzikirData = localDzikirData;
@@ -14,6 +20,31 @@ export default function DzikirPage() {
 
     const [customCounter, setCustomCounter] = useState(0);
     const [customMax, setCustomMax] = useState(33);
+
+    const [user, setUser] = useState<User | null>(null);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [rawBookmarks, setRawBookmarks] = useState<BookmarkItem[]>([]);
+    const [bookmarkingId, setBookmarkingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                const userDoc = doc(db, "users", currentUser.uid);
+                const unsubDoc = onSnapshot(userDoc, (docSnap) => {
+                    if (docSnap.exists()) {
+                        setRawBookmarks(docSnap.data().bookmarks ?? []);
+                    } else {
+                        setRawBookmarks([]);
+                    }
+                });
+                return () => unsubDoc();
+            } else {
+                setRawBookmarks([]);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     const incrementCount = (id: string, maxStr: string) => {
         const max = parseInt(maxStr.replace("x", "")) || 1;
@@ -30,19 +61,71 @@ export default function DzikirPage() {
     };
 
     const categories = [
-        { id: "pagi",  label: "Pagi",  icon: <Sun size={14} /> },
-        { id: "sore",  label: "Sore",  icon: <Moon size={14} /> },
+        { id: "pagi", label: "Pagi", icon: <Sun size={14} /> },
+        { id: "sore", label: "Sore", icon: <Moon size={14} /> },
         { id: "solat", label: "Solat", icon: <Sparkles size={14} /> },
     ];
 
-    const handleShare = (item: DzikirItem) => {
-        const text = `🌙 *Dzikir ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}*\n\n${item.arab}\n\n"${item.indo}"\n\nDibaca: ${item.ulang}\n\nSumber: Al-Qur'an Ku`;
-        if (navigator.share) {
-            navigator.share({ title: `Dzikir ${activeTab}`, text });
-        } else {
-            navigator.clipboard.writeText(text);
-            alert("Dzikir berhasil disalin!");
+    const isDzikirBookmarked = (id: string, item: DzikirItem) => {
+        return rawBookmarks.some(
+            (b) => b.id === `dzikir-${id}` || (b.category === "dzikir" && b.teksArab === item.arab)
+        );
+    };
+
+    const handleToggleBookmark = async (id: string, item: DzikirItem, index: number) => {
+        if (!user) {
+            setShowLoginModal(true);
+            return;
         }
+
+        const key = `dzikir-${id}`;
+        const existing = rawBookmarks.find(
+            (b) => b.id === key || (b.category === "dzikir" && b.teksArab === item.arab)
+        );
+
+        setBookmarkingId(key);
+        try {
+            if (existing) {
+                await updateDoc(doc(db, "users", user.uid), {
+                    bookmarks: arrayRemove(existing),
+                });
+            } else {
+                const typeCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+                const newBookmark: BookmarkItem = {
+                    id: key,
+                    category: "dzikir",
+                    title: `Dzikir ${typeCapitalized} #${index + 1}`,
+                    subtitle: `Target: ${item.ulang}`,
+                    teksArab: item.arab,
+                    teksIndonesia: item.indo,
+                    url: "/dzikir",
+                    savedAt: new Date().toISOString(),
+                };
+                await setDoc(
+                    doc(db, "users", user.uid),
+                    { bookmarks: arrayUnion(newBookmark) },
+                    { merge: true }
+                );
+            }
+            if (navigator.vibrate) navigator.vibrate(50);
+        } catch (err) {
+            console.error("Gagal mengubah bookmark dzikir:", err);
+        } finally {
+            setBookmarkingId(null);
+        }
+    };
+
+    const handleShare = (item: DzikirItem) => {
+        const typeCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+        shareOrCopy(
+            {
+                title: `Dzikir ${typeCapitalized}`,
+                arab: item.arab,
+                translation: item.indo,
+                extra: `Dibaca: ${item.ulang}`,
+            },
+            "Dzikir berhasil disalin!"
+        );
     };
 
     const filteredData = dzikirData.filter((d) => d.type.toLowerCase() === activeTab.toLowerCase());
@@ -70,9 +153,8 @@ export default function DzikirPage() {
                                 <button
                                     key={cat.id}
                                     onClick={() => setActiveTab(cat.id)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
-                                        activeTab === cat.id ? "bg-primary/20 border border-primary/30 text-primary-2 shadow-md" : "text-gray-400 hover:text-white"
-                                    }`}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === cat.id ? "bg-primary/20 border border-primary/30 text-primary-2 shadow-md" : "text-gray-400 hover:text-white"
+                                        }`}
                                 >
                                     {cat.icon}
                                     <span className={`${activeTab === cat.id ? "inline" : "hidden"} sm:inline`}>{cat.label}</span>
@@ -87,7 +169,7 @@ export default function DzikirPage() {
                     <div className="max-w-5xl mx-auto space-y-4">
 
                         {/* Tasbih Digital */}
-                        <div className="p-6 rounded-4xl bg-gradient-to-br from-primary/20 to-primary-2/20 border border-primary-2/30">
+                        <div className="p-6 rounded-4xl bg-linear-to-br from-primary/20 to-primary-2/20 border border-primary-2/30">
                             <div className="flex justify-between items-center mb-4">
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-2">Tasbih Digital</span>
                                 <div className="flex gap-2">
@@ -95,14 +177,13 @@ export default function DzikirPage() {
                                         <button
                                             key={val}
                                             onClick={() => { setCustomMax(val); setCustomCounter(0); }}
-                                            className={`px-3 py-1 rounded-lg text-[10px] font-bold border transition ${
-                                                customMax === val ? "bg-primary-2 border-primary-2 text-white" : "border-white/10 text-gray-500 hover:text-white"
-                                            }`}
+                                            className={`px-3 py-1 rounded-xl text-[10px] font-bold border transition ${customMax === val ? "bg-primary-2 border-primary-2 text-white" : "border-white/10 text-gray-500 hover:text-white"
+                                                }`}
                                         >
                                             {val}
                                         </button>
                                     ))}
-                                    <button onClick={() => setCustomCounter(0)} className="p-1.5 bg-white/5 rounded-lg text-gray-400 hover:text-white transition">
+                                    <button onClick={() => setCustomCounter(0)} className="p-1.5 bg-white/5 rounded-xl text-gray-400 hover:text-white transition">
                                         <RotateCcw size={14} />
                                     </button>
                                 </div>
@@ -128,68 +209,99 @@ export default function DzikirPage() {
                             const current = counts[id] || 0;
                             const max = parseInt(item.ulang.replace("x", "")) || 1;
                             const isDone = current >= max;
+                            const key = `dzikir-${id}`;
+                            const bookmarked = isDzikirBookmarked(id, item);
 
                             return (
                                 <div
                                     key={id}
                                     onClick={() => incrementCount(id, item.ulang)}
-                                    className={`relative group p-6 rounded-4xl border transition-all duration-300 cursor-pointer overflow-hidden ${
-                                        isDone ? "bg-primary-2/10 border-primary-2/40" : "bg-white/5 border-white/5 hover:bg-white/8"
-                                    }`}
+                                    className={`relative group p-6 rounded-4xl border transition-all duration-300 cursor-pointer overflow-hidden ${isDone ? "bg-primary-2/10 border-primary-2/40" : "bg-white/5 border-white/5 hover:bg-white/10"
+                                        }`}
                                 >
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${
-                                                    isDone ? "bg-primary-2 border-primary-2 shadow-lg shadow-primary-2/40" : "bg-white/5 border-white/10"
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${isDone ? "bg-primary-2 border-primary-2 shadow-lg shadow-primary-2/40" : "bg-white/5 border-white/10"
                                                 }`}>
-                                                    {isDone ? (
-                                                        <CheckCircle2 size={16} />
-                                                    ) : (
-                                                        <span className="text-[10px] font-black text-primary-2">{current}</span>
-                                                    )}
-                                                </div>
-                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                                                    Target: {item.ulang}
-                                                </span>
+                                                {isDone ? (
+                                                    <CheckCircle2 size={16} />
+                                                ) : (
+                                                    <span className="text-[10px] font-black text-primary-2">{current}</span>
+                                                )}
                                             </div>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); resetCount(id); }}
-                                                className="p-2 text-gray-600 hover:text-white transition"
-                                            >
-                                                <RotateCcw size={14} />
-                                            </button>
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                Target: {item.ulang}
+                                            </span>
                                         </div>
-
-                                        <p className="text-4xl text-right font-ayat leading-relaxed mb-4 text-white/90" dir="rtl">
-                                            {item.arab}
-                                        </p>
-                                        <p className="text-xs text-gray-400 italic leading-relaxed border-l-2 border-primary-2/30 pl-3">
-                                            &quot;{item.indo}&quot;
-                                        </p>
-
-                                        {/* Action row */}
-                                        <div className="flex items-center gap-2 pt-3 border-t border-white/5 mt-3">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleShare(item); }}
-                                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
-                                            >
-                                                <Share2 size={14} />
-                                                <span className="hidden md:flex">Bagikan</span>
-                                            </button>
-                                        </div>
-
-                                        <div
-                                            className="absolute bottom-0 left-0 h-1 bg-primary-2 transition-all duration-300 rounded-b-4xl"
-                                            style={{ width: `${(current / max) * 100}%` }}
-                                        />
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); resetCount(id); }}
+                                            className="p-2 bg-white/5 rounded-xl text-gray-500 hover:bg-white/10 hover:text-white transition"
+                                        >
+                                            <RotateCcw size={14} />
+                                        </button>
                                     </div>
-                                );
-                            })}
 
+                                    <p className="text-4xl text-right font-ayat leading-loose mb-4 text-white/90" dir="rtl">
+                                        {item.arab}
+                                    </p>
+                                    <div className="mb-4">
+                                        <p className="text-[10px] font-black text-primary-2 uppercase tracking-widest border-l-2 border-primary/30 pl-4 mb-3">Terjemahan</p>
+                                        <p className="border-l-2 border-white/15 pl-4 text-sm leading-relaxed text-gray-300 text-justify">
+                                            {item.indo}
+                                        </p>
+                                    </div>
+                                    {/* Action row */}
+                                    <div className="flex items-center gap-2 pt-3 border-t border-white/5 mt-3">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleToggleBookmark(id, item, index);
+                                            }}
+                                            disabled={bookmarkingId === key}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${bookmarked
+                                                    ? "bg-primary/20 text-primary-2 border border-primary/30 shadow-md"
+                                                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                                                }`}
+                                        >
+                                            <BookmarkPlus size={14} fill={bookmarked ? "currentColor" : "none"} />
+                                            <span>
+                                                {bookmarked
+                                                    ? "Tersimpan"
+                                                    : bookmarkingId === key
+                                                        ? "Menyimpan..."
+                                                        : "Simpan"}
+                                            </span>
+                                        </button>
+
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleShare(item); }}
+                                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition"
+                                        >
+                                            <Share2 size={14} />
+                                            <span className="hidden md:flex">Bagikan</span>
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        className="absolute bottom-0 left-0 h-1 bg-primary-2 transition-all duration-300 rounded-b-4xl"
+                                        style={{ width: `${(current / max) * 100}%` }}
+                                    />
+                                </div>
+                            );
+                        })}
+
+                        <div className="mb-8" />
                         <Footer />
                     </div>
                 </div>
             </main>
+
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                title="Login Diperlukan"
+                description="Silakan login dengan Google untuk menyimpan dzikir ke bookmark profil Anda."
+            />
         </>
     );
 }

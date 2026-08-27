@@ -2,13 +2,15 @@
 
 import { useState, useRef, useEffect, use as useHook } from "react";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, Layers, BookmarkCheck } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, Layers, BookmarkCheck, BookmarkPlus, Share2 } from 'lucide-react';
 import { db, auth, googleProvider } from "@/lib/firebase";
-import { setDoc, doc, onSnapshot } from "firebase/firestore";
+import { setDoc, doc, onSnapshot, arrayUnion, updateDoc, arrayRemove } from "firebase/firestore";
 import { onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonAyatList } from "@/components/Skeleton";
+import { BookmarkItem } from "@/lib/bookmark-types";
+import { shareOrCopy } from "@/lib/share-utils";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -65,6 +67,9 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
 
   const [savingId, setSavingId] = useState<number | null>(null);
   const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
+  const [bookmarkingId, setBookmarkingId] = useState<number | null>(null);
+  const [rawBookmarks, setRawBookmarks] = useState<BookmarkItem[]>([]);
+  const [bookmarkedAyats, setBookmarkedAyats] = useState<string[]>([]); // "surahNo-ayatNo"
   const [basmalahAudio, setBasmalahAudio] = useState<{ [key: string]: string } | null>(null);
 
   const cachedBasmalahAudioRef = useRef<{ [key: string]: string } | null>(null);
@@ -89,7 +94,18 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       if (currentUser) {
         const userDoc = doc(db, "users", currentUser.uid);
         const unsubDoc = onSnapshot(userDoc, (docSnap) => {
-          if (docSnap.exists()) setLastReadData(docSnap.data().lastRead);
+          if (docSnap.exists()) {
+            setLastReadData(docSnap.data().lastRead);
+            const bm: any[] = docSnap.data().bookmarks ?? [];
+            setRawBookmarks(bm);
+            setBookmarkedAyats(
+              bm.map((b) =>
+                b.surahNo && b.ayatNo
+                  ? `${b.surahNo}-${b.ayatNo}`
+                  : b.id?.replace("surah-", "") ?? ""
+              )
+            );
+          }
         });
         return () => unsubDoc();
       }
@@ -226,6 +242,45 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
     }
   }, [savingId]);
 
+  const toggleBookmark = async (item: JuzVerse) => {
+    if (!auth.currentUser) { setShowLoginModal(true); return; }
+    const key = `${item.surahNum}-${item.nomorAyat}`;
+    const isBookmarked = bookmarkedAyats.includes(key);
+    setBookmarkingId(item.nomorAyat);
+    try {
+      if (isBookmarked) {
+        const existing = rawBookmarks.find(
+          b => (b.surahNo === item.surahNum && b.ayatNo === item.nomorAyat) || b.id === `surah-${item.surahNum}-${item.nomorAyat}`
+        );
+        if (existing) {
+          await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            bookmarks: arrayRemove(existing),
+          });
+        }
+      } else {
+        const newBookmark: BookmarkItem = {
+          id: `surah-${item.surahNum}-${item.nomorAyat}`,
+          category: "surah",
+          title: `${item.surahName} : ${item.nomorAyat}`,
+          subtitle: `Juz ${juzId} · Surah ke-${item.surahNum} Ayat ${item.nomorAyat}`,
+          surahNo: item.surahNum,
+          surahName: item.surahName,
+          ayatNo: item.nomorAyat,
+          teksArab: item.teksArab,
+          teksLatin: item.teksLatin,
+          teksIndonesia: item.teksIndonesia,
+          url: `/surah/${item.surahNum}`,
+          savedAt: new Date().toISOString(),
+        };
+        await setDoc(doc(db, "users", auth.currentUser.uid), {
+          bookmarks: arrayUnion(newBookmark),
+        }, { merge: true });
+      }
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (err) { console.error(err); }
+    finally { setBookmarkingId(null); }
+  };
+
   // Basmalah: prepare audio if the first surah in juz needs it
   useEffect(() => {
     const firstSurah = juzData?.verses?.[0]?.surahNum;
@@ -264,9 +319,16 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
   };
 
   const handleShare = (item: JuzVerse) => {
-    const text = `📖 *Juz ${juzId} - ${item.surahName} Ayat ${item.nomorAyat}*\n\n${item.teksArab}\n\n"${item.teksIndonesia}"`;
-    if (navigator.share) navigator.share({ title: `Juz ${juzId}`, text });
-    else { navigator.clipboard.writeText(text); alert("Disalin!"); }
+    shareOrCopy(
+      {
+        title: `Juz ${juzId} - ${item.surahName} Ayat ${item.nomorAyat}`,
+        arab: item.teksArab,
+        latin: item.teksLatin,
+        translation: item.teksIndonesia,
+        extra: `Juz ${juzId}`,
+      },
+      "Ayat disalin!"
+    );
   };
 
   if (loading) return (
@@ -274,7 +336,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       {/* Sidebar skeleton — sama persis dimensi dengan sidebar asli */}
       <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-linear-to-t from-bg-primary to-bg-primary-2 border-r border-white/5 text-white hidden lg:flex flex-col p-6">
         <div className="flex items-center justify-between mb-8">
-          <div className="h-6 w-28 bg-white/8 rounded-xl animate-pulse" />
+          <div className="h-6 w-28 bg-white/10 rounded-xl animate-pulse" />
         </div>
         <div className="flex-1 space-y-2 overflow-hidden">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -287,16 +349,16 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
       <Navbar hideSidebar />
 
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
-        <div className="sticky top-0 z-20 px-4 md:px-6 py-4 border-b border-white/5">
+        <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/8 rounded-2xl animate-pulse" />
-              <div className="h-8 w-24 bg-white/8 rounded-xl animate-pulse lg:hidden" />
+              <div className="w-9 h-9 bg-white/10 rounded-xl animate-pulse" />
+              <div className="h-6 w-24 bg-white/10 rounded-xl animate-pulse lg:hidden" />
             </div>
-            <div className="h-8 w-20 bg-white/8 rounded-xl animate-pulse" />
+            <div className="h-6 w-20 bg-white/10 rounded-xl animate-pulse" />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 pb-24 lg:pb-8">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
           <SkeletonAyatList count={5} />
         </div>
       </main>
@@ -323,38 +385,32 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </aside>
 
-      {isSidebarOpen && <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
+      {isSidebarOpen && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
       {/* Bottom nav mobile */}
       <Navbar hideSidebar />
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
         {/* HEADER AREA */}
-        <div className="sticky top-0 z-20 px-4 md:px-6 py-4 border-b border-white/5">
-          <header className="max-w-5xl mx-auto w-full">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Link href="/juz" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition"><ArrowLeft size={20} /></Link>
-                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
-                  <Layers size={16} className="text-primary-2" /> Pilih Juz
-                </button>
-              </div>
-              <div className="text-right">
-                <h1 className="md:text-3xl font-black ">Juz <span className="text-primary-2">{juzId}</span></h1>
-              </div>
-            </div>
+        <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
+          <header className="max-w-5xl mx-auto w-full flex items-center gap-3">
+            <Link href="/juz" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition shrink-0"><ArrowLeft size={18} /></Link>
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-xs font-bold shrink-0">
+              <Layers size={16} className="text-primary-2" /> Pilih Juz
+            </button>
+            <h1 className="text-xl md:text-2xl font-black">Juz <span className="text-primary-2">{juzId}</span></h1>
           </header>
         </div>
 
         {/* CONTENT AREA */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 pb-24 lg:pb-8">
-          <div className="max-w-5xl mx-auto pb-8">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
+          <div className="max-w-5xl mx-auto">
             {/* QARI SELECTION */}
-            <div className="mb-10">
-              <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Pilih Murottal</h3>
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+            <div className="mb-10 overflow-hidden">
+              <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-[0.2em]">Pilih Murottal</h3>
+              <div className="flex gap-4 overflow-x-auto custom-scroll pb-4">
                 {LIST_QARI.map((qari) => (
                   <button key={qari.id} onClick={() => setSelectedQari(qari.id)} className={`flex flex-col items-center gap-3 p-4 min-w-35 rounded-3xl transition-all border md:w-full ${selectedQari === qari.id ? "bg-white text-bg-primary border-white" : "bg-white/5 border-white/10"}`}>
-                    <img src={qari.img} className="w-12 h-12 object-cover rounded-full shadow-lg" alt={qari.name} />
-                    <span className="text-[9px] font-black uppercase text-center leading-tight">{qari.name}</span>
+                    <img src={qari.img} className="w-14 h-14 object-cover rounded-full shadow-lg" alt={qari.name} />
+                    <span className="text-[10px] font-black uppercase text-center leading-tight">{qari.name}</span>
                   </button>
                 ))}
               </div>
@@ -382,94 +438,124 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
                 return (
                   <div key={`${item.surahNum}-${item.nomorAyat}`} ref={(el) => { ayatRefs.current[index] = el }}>
                     {isNewSurah && (
-                      <div className="my-10 text-center py-8 rounded-4xl bg-white/5 border border-white/5 relative overflow-hidden">
-                        <p className="text-[10px] font-black text-primary-2 uppercase tracking-[0.3em] mb-2">Memasuki Surah</p>
-                        <h2 className="text-3xl font-black italic">{item.surahName}</h2>
-                        <div className="font-ayat absolute right-0 bottom-0 opacity-5 text-7xl select-none">
+                      <div className="my-10 relative overflow-hidden bg-linear-to-br from-primary to-primary-2 py-8 px-6 rounded-4xl text-center shadow-2xl">
+                        <div className="relative z-10">
+                          <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mb-2">Memasuki Surah</p>
+                          <h2 className="text-3xl font-bold mb-1">{item.surahName}</h2>
+                          <div className="h-px w-24 mx-auto bg-white/30 my-3" />
+                          <p className="text-sm font-bold uppercase tracking-widest text-white/80">{item.surahNum} • {item.surahNameArab}</p>
+                        </div>
+                        <div className="font-ayat absolute -right-4 -bottom-4 opacity-10 text-8xl select-none pointer-events-none">
                           {item.surahNameArab}
                         </div>
                       </div>
                     )}
 
-                    <div className={`group p-6 rounded-4xl transition-all duration-500 border ${currentAyatIndex === index ? "bg-white/15 border-white/30 shadow-2xl scale-[1.01]" : "bg-white/5 border-transparent"}`}>
-                      <div className="flex flex-col gap-6">
-                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                          <div className="flex gap-2">
-                            <div className="w-10 h-10 rounded-2xl bg-linear-to-t from-primary to-primary-2 flex items-center justify-center text-xs font-bold shadow-lg">
-                              {item.nomorAyat}
-                            </div>
-                            <button onClick={() => playAudio(index)} className="p-2 text-gray-400 hover:text-white transition">
-                              {currentAyatIndex === index && isPlaying ? (
-                                <span className="flex gap-1">
-                                  <span className="w-1 h-3 bg-white animate-bounce"></span>
-                                  <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.2s]"></span>
-                                  <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.4s]"></span>
-                                </span>
-                              ) : <Play size={20} fill="currentColor" />}
-                            </button>
+                    <div className={`group p-6 rounded-4xl transition-all duration-500 border ${currentAyatIndex === index ? "bg-white/15 border-white/30 shadow-2xl" : "bg-white/5 border-transparent"}`}>
+                      {/* --- ARABIC ROW --- */}
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
+                        <div className="flex gap-2">
+                          <div className="w-10 h-10 rounded-2xl bg-linear-to-t from-primary to-primary-2 flex items-center justify-center text-xs font-bold shadow-lg shadow-primary/20">
+                            {item.nomorAyat}
                           </div>
-                          <p className="text-4xl text-right font-ayat grow leading-18" dir="rtl">{item.teksArab}</p>
+                          <button onClick={() => playAudio(index)} className="p-2 text-gray-400 hover:text-white transition active:scale-90">
+                            {currentAyatIndex === index && isPlaying ? (
+                              <span className="flex gap-1">
+                                <span className="w-1 h-3 bg-white animate-bounce"></span>
+                                <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.2s]"></span>
+                                <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.4s]"></span>
+                              </span>
+                            ) : <Play size={20} fill="currentColor" />}
+                          </button>
                         </div>
-
-                        <div className="space-y-2 border-l-2 border-primary/30 pl-4 py-1">
-                          <p className="font-bold italic tracking-wide">{item.teksLatin}</p>
-                          <p className="text-gray-300 text-sm leading-relaxed">{item.teksIndonesia}</p>
-                        </div>
-
-                        {openTafsirIndex === index && item.tafsir && (
-                          <div className="mt-2 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95">
-                            <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2"><BookOpen size={14} /> Tafsir Kemenag</h4>
-                            <p className="text-sm text-gray-300 leading-loose text-justify whitespace-pre-line">{item.tafsir}</p>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
-                          <div className="flex gap-2">
-                            <button onClick={() => setOpenTafsirIndex(openTafsirIndex === index ? null : index)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${openTafsirIndex === index ? "bg-primary text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"}`}>
-                              {openTafsirIndex === index ? <ChevronUp size={14} /> : <BookOpen size={14} />} Tafsir
-                            </button>
-                            <button onClick={() => handleShare(item)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:text-primary-2 transition">
-                              <ExternalLink size={14} /> <span className="hidden md:flex">Share</span>
-                            </button>
-
-                            <button
-                              onClick={() => saveLastRead(item.surahNum, item.nomorAyat, item.surahName)}
-                              disabled={showSaving}
-                              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
-                                ? "bg-amber-500 text-white animate-pulse"
-                                : isLastRead
-                                  ? "bg-primary text-white scale-95"
-                                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary"
-                                }`}
-                            >
-                              {showSaving ? (
-                                <>
-                                  <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                                  <span className="hidden md:flex">Menyimpan...</span>
-                                </>
-                              ) : isLastRead ? (
-                                <>
-                                  <BookmarkCheck size={14} fill="currentColor" />
-                                  <span className="hidden md:flex">Terakhir Dibaca</span>
-                                </>
-                              ) : (
-                                <>
-                                  <BookmarkCheck size={14} />
-                                  <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{item.surahName} : {item.nomorAyat}</span>
-                        </div>
+                        <p className="text-4xl text-right font-ayat grow leading-18" dir="rtl">{item.teksArab}</p>
                       </div>
+
+                      <p className="border-l-2 border-primary/30 pl-4 text-sm font-bold italic leading-relaxed text-primary-2 mb-3">
+                        {item.teksLatin}
+                      </p>
+                      <p className="border-l-2 border-white/15 pl-4 text-sm leading-relaxed text-gray-300">
+                        {item.teksIndonesia}
+                      </p>
+
+                      {/* --- ACTION BUTTONS --- */}
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                        <div className="flex gap-2">
+                          <button onClick={() => setOpenTafsirIndex(openTafsirIndex === index ? null : index)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${openTafsirIndex === index ? "bg-primary text-white" : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"}`}>
+                            {openTafsirIndex === index ? <ChevronUp size={14} /> : <BookOpen size={14} />}
+                            {openTafsirIndex === index ? "Tutup Tafsir" : "Lihat Tafsir"}
+                          </button>
+                          <button onClick={() => handleShare(item)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition">
+                            <Share2 size={14} /> <span className="hidden md:flex">Bagikan</span>
+                          </button>
+
+                          <button
+                            onClick={() => toggleBookmark(item)}
+                            disabled={bookmarkingId === item.nomorAyat}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                              bookmarkedAyats.includes(`${item.surahNum}-${item.nomorAyat}`)
+                                ? "bg-primary/20 text-primary-2 border border-primary/30 shadow-md"
+                                : bookmarkingId === item.nomorAyat
+                                  ? "bg-white/5 text-gray-400 animate-pulse"
+                                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <BookmarkPlus size={14} fill={bookmarkedAyats.includes(`${item.surahNum}-${item.nomorAyat}`) ? "currentColor" : "none"} />
+                            <span className="hidden md:flex">
+                              {bookmarkedAyats.includes(`${item.surahNum}-${item.nomorAyat}`)
+                                ? "Tersimpan"
+                                : bookmarkingId === item.nomorAyat
+                                ? "Menyimpan..."
+                                : "Simpan"}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => saveLastRead(item.surahNum, item.nomorAyat, item.surahName)}
+                            disabled={showSaving}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
+                              ? "bg-primary text-white animate-pulse"
+                              : isLastRead
+                                ? "bg-primary text-white scale-95"
+                                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                              }`}
+                          >
+                            {showSaving ? (
+                              <>
+                                <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                                <span className="hidden md:flex">Menyimpan...</span>
+                              </>
+                            ) : isLastRead ? (
+                              <>
+                                <BookmarkCheck size={14} fill="currentColor" />
+                                <span className="hidden md:flex">Terakhir Dibaca</span>
+                              </>
+                            ) : (
+                              <>
+                                <BookmarkCheck size={14} />
+                                <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{item.surahName} : {item.nomorAyat}</span>
+                      </div>
+
+                      {/* --- TAFSIR SECTION --- */}
+                      {openTafsirIndex === index && item.tafsir && (
+                        <div className="mt-3 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                          <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2"><BookOpen size={14} /> Tafsir Kemenag</h4>
+                          <p className="text-sm text-gray-300 leading-loose text-justify whitespace-pre-line">{item.tafsir}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
+            <div className="mb-8" />
+            <Footer />
           </div>
-          <Footer />
         </div>
 
          <audio ref={audioRef} onEnded={handleNextAyat} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)} onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)} />
@@ -477,7 +563,7 @@ export default function JuzDetailPage({ params }: { params: Promise<{ id: string
         {/* FLOATING PLAYER */}
         {currentAyatIndex !== null && (
           <div className="fixed bottom-4 left-4 right-4 lg:left-80 lg:right-8 z-30 pointer-events-none">
-            <div className="max-w-md mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 rounded-4xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
+            <div className="max-w-xl mx-auto bg-white/10 backdrop-blur-3xl border border-white/20 rounded-4xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 pointer-events-auto mb-20 lg:mb-0">
               {/* Progress Bar */}
               <div className="h-1 bg-white/10 cursor-pointer group" onClick={(e) => {
                 if (!audioRef.current || !duration) return;

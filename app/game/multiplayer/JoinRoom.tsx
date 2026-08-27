@@ -63,7 +63,7 @@ export default function JoinRoom({ onBack }: { onBack: () => void }) {
                         <button onClick={onBack} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                             <ArrowLeft size={18} />
                         </button>
-                        <h1 className="text-xl font-black">Gabung <span className="text-rose-400">Room</span></h1>
+                        <h1 className="text-xl md:text-2xl font-black">Gabung <span className="text-rose-400">Room</span></h1>
                     </header>
                 </div>
 

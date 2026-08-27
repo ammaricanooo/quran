@@ -502,7 +502,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                             <Link href="/game/multiplayer" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                                 <ArrowLeft size={18} />
                             </Link>
-                            <h1 className="text-xl font-black">
+                            <h1 className="text-xl md:text-2xl font-black">
                                 Room <span className="text-rose-400">{code}</span>
                             </h1>
                         </div>

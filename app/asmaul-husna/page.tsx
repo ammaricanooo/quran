@@ -2,9 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Share2, Volume2, VolumeX, BookOpen, Check } from "lucide-react";
+import { ArrowLeft, Search, Share2, BookOpen, Check, X, BookmarkPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import LoginModal from "@/components/LoginModal";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { BookmarkItem } from "@/lib/bookmark-types";
+import { shareOrCopy } from "@/lib/share-utils";
 
 interface Nama {
     id: number;
@@ -37,17 +43,32 @@ function Skeleton() {
 }
 
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
-function DetailModal({ nama, onClose }: { nama: Nama; onClose: () => void }) {
+function DetailModal({
+    nama,
+    onClose,
+    isBookmarked,
+    isBookmarking,
+    onToggleBookmark,
+}: {
+    nama: Nama;
+    onClose: () => void;
+    isBookmarked: boolean;
+    isBookmarking: boolean;
+    onToggleBookmark: (nama: Nama) => void;
+}) {
     const accentIdx = (nama.id - 1) % ACCENTS.length;
 
     const handleShare = () => {
-        const text = `✨ *${nama.latin}* (No. ${nama.id})\n\n${nama.arab}\n\n"${nama.indo}"\n\nSumber: Al-Qur'an Ku`;
-        if (navigator.share) {
-            navigator.share({ title: nama.latin, text });
-        } else {
-            navigator.clipboard.writeText(text);
-            alert("Nama disalin!");
-        }
+        shareOrCopy(
+            {
+                title: `${nama.latin} (No. ${nama.id})`,
+                arab: nama.arab,
+                latin: nama.latin,
+                translation: nama.indo,
+                extra: `Asmaul Husna ke-${nama.id}`,
+            },
+            "Asmaul Husna disalin!"
+        );
     };
 
     // Tutup dengan klik backdrop atau Escape
@@ -88,17 +109,33 @@ function DetailModal({ nama, onClose }: { nama: Nama; onClose: () => void }) {
                 </p>
 
                 {/* Arti */}
-                <div className={`bg-gradient-to-br ${ACCENTS[accentIdx]} border rounded-3xl p-4 text-center`}>
+                <div className={`bg-linear-to-br ${ACCENTS[accentIdx]} border rounded-3xl p-4 text-center`}>
                     <p className="text-white font-bold text-lg leading-snug">{nama.indo}</p>
                 </div>
 
-                {/* Action */}
-                <button
-                    onClick={handleShare}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition active:scale-95"
-                >
-                    <Share2 size={16} /> Bagikan
-                </button>
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                    <button
+                        onClick={() => onToggleBookmark(nama)}
+                        disabled={isBookmarking}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-black transition active:scale-95 ${
+                            isBookmarked
+                                ? "bg-primary/20 text-primary-2 border border-primary/30 shadow-md"
+                                : "bg-white/5 hover:bg-white/10 border border-white/5 text-gray-400 hover:text-white"
+                        }`}
+                    >
+                        <BookmarkPlus size={16} fill={isBookmarked ? "currentColor" : "none"} />
+                        <span>{isBookmarked ? "Tersimpan" : isBookmarking ? "Menyimpan..." : "Simpan"}</span>
+                    </button>
+
+                    <button
+                        onClick={handleShare}
+                        className="flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition active:scale-95"
+                    >
+                        <Share2 size={16} />
+                        <span>Bagikan</span>
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -109,8 +146,14 @@ export default function AsmaulHusnaPage() {
     const [data, setData]               = useState<Nama[]>([]);
     const [loading, setLoading]         = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [selected, setSelected]       = useState<Nama | null>(null);
     const [memorized, setMemorized]     = useState<Set<number>>(new Set());
+    const [user, setUser]               = useState<User | null>(null);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [rawBookmarks, setRawBookmarks] = useState<BookmarkItem[]>([]);
+    const [bookmarkingId, setBookmarkingId] = useState<string | null>(null);
+    const searchRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetch("/api/asmaul-husna")
@@ -122,19 +165,95 @@ export default function AsmaulHusnaPage() {
             .catch(() => setLoading(false));
     }, []);
 
-    // Persist hafalan di localStorage
+    // Auth listener + Firestore sync
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem("asmaul_memorized");
-            if (saved) setMemorized(new Set(JSON.parse(saved)));
-        } catch {}
+        const unsub = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                const userDoc = doc(db, "users", currentUser.uid);
+                const unsubDoc = onSnapshot(userDoc, (snap) => {
+                    if (snap.exists()) {
+                        const ids: number[] = snap.data().asmaulHusnaMemorized ?? [];
+                        setMemorized(new Set(ids));
+                        setRawBookmarks(snap.data().bookmarks ?? []);
+                    }
+                });
+                return () => unsubDoc();
+            } else {
+                setRawBookmarks([]);
+                // Fallback to localStorage when not logged in
+                try {
+                    const saved = localStorage.getItem("asmaul_memorized");
+                    if (saved) setMemorized(new Set(JSON.parse(saved)));
+                } catch {}
+            }
+        });
+        return () => unsub();
     }, []);
+
+    const isAsmaulBookmarked = (id: number) => {
+        const key = `asmaul-${id}`;
+        return rawBookmarks.some(
+            (b) => b.id === key || (b.category === "asmaul-husna" && b.title.includes(`No. ${id}`))
+        );
+    };
+
+    const handleToggleBookmark = async (nama: Nama) => {
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+
+        const key = `asmaul-${nama.id}`;
+        const existing = rawBookmarks.find(
+            (b) => b.id === key || (b.category === "asmaul-husna" && b.title.includes(`No. ${nama.id}`))
+        );
+
+        setBookmarkingId(key);
+        try {
+            if (existing) {
+                await updateDoc(doc(db, "users", user.uid), {
+                    bookmarks: arrayRemove(existing),
+                });
+            } else {
+                const newBookmark: BookmarkItem = {
+                    id: key,
+                    category: "asmaul-husna",
+                    title: `${nama.latin} (No. ${nama.id})`,
+                    subtitle: nama.indo,
+                    teksArab: nama.arab,
+                    teksLatin: nama.latin,
+                    teksIndonesia: nama.indo,
+                    url: "/asmaul-husna",
+                    savedAt: new Date().toISOString(),
+                };
+                await setDoc(
+                    doc(db, "users", user.uid),
+                    { bookmarks: arrayUnion(newBookmark) },
+                    { merge: true }
+                );
+            }
+            if (navigator.vibrate) navigator.vibrate(50);
+        } catch (err) {
+            console.error("Gagal mengubah bookmark Asmaul Husna:", err);
+        } finally {
+            setBookmarkingId(null);
+        }
+    };
 
     const toggleMemorized = (id: number) => {
         setMemorized(prev => {
             const next = new Set(prev);
             next.has(id) ? next.delete(id) : next.add(id);
-            try { localStorage.setItem("asmaul_memorized", JSON.stringify([...next])); } catch {}
+            const arr = [...next];
+            if (user) {
+                // Sync to Firestore
+                setDoc(doc(db, "users", user.uid), { asmaulHusnaMemorized: arr }, { merge: true })
+                    .catch(console.error);
+            } else {
+                // Fallback to localStorage
+                try { localStorage.setItem("asmaul_memorized", JSON.stringify(arr)); } catch {}
+            }
             return next;
         });
     };
@@ -144,6 +263,25 @@ export default function AsmaulHusnaPage() {
         n.indo.toLowerCase().includes(searchQuery.toLowerCase()) ||
         String(n.id).includes(searchQuery)
     );
+
+    const suggestions = searchQuery.trim().length > 0
+        ? data
+            .filter(n =>
+                n.latin.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                n.indo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                String(n.id).includes(searchQuery)
+            )
+            .slice(0, 5)
+        : [];
+
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(e.target as Node))
+                setShowSuggestions(false);
+        };
+        document.addEventListener("mousedown", handleClick);
+        return () => document.removeEventListener("mousedown", handleClick);
+    }, []);
 
     const memorizedCount = memorized.size;
 
@@ -166,8 +304,8 @@ export default function AsmaulHusnaPage() {
                         <div className="flex items-center gap-2">
                             {/* Progress hafalan */}
                             {memorizedCount > 0 && (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/20 rounded-lg">
-                                    <span className="text-[10px] font-black text-emerald-400 uppercase">
+                                <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-primary/20 border border-primary/30 rounded-xl">
+                                    <span className="text-[10px] font-black text-primary-2 uppercase">
                                         Hafal {memorizedCount}/99
                                     </span>
                                 </div>
@@ -181,7 +319,7 @@ export default function AsmaulHusnaPage() {
 
                 {/* ── CONTENT ── */}
                 <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
-                    <div className="max-w-5xl mx-auto space-y-5">
+                    <div className="max-w-5xl mx-auto space-y-6">
 
                         {/* Progress bar hafalan */}
                         {!loading && memorizedCount > 0 && (
@@ -200,15 +338,51 @@ export default function AsmaulHusnaPage() {
                         )}
 
                         {/* Search */}
-                        <div className="relative group w-full mb-6">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Cari nama, arti, atau nomor..."
-                                className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-5 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                            />
+                        <div className="relative mb-6" ref={searchRef}>
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors z-10" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Cari nama, arti, atau nomor..."
+                                    className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
+                                    value={searchQuery}
+                                    onChange={e => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                />
+                                {searchQuery && (
+                                    <button onClick={() => { setSearchQuery(""); setShowSuggestions(false); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition">
+                                        <X size={16} />
+                                    </button>
+                                )}
+                            </div>
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-bg-primary-2 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
+                                    {suggestions.map((n) => {
+                                        const accentIdx = (n.id - 1) % ACCENTS.length;
+                                        return (
+                                            <button
+                                                key={n.id}
+                                                onMouseDown={() => { setSelected(n); setSearchQuery(n.latin); setShowSuggestions(false); }}
+                                                className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0 text-left"
+                                            >
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 bg-linear-to-br ${ACCENTS[accentIdx]}`}>
+                                                    {n.id}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold truncate">{n.latin}</p>
+                                                    <p className="text-[10px] text-gray-500 truncate">{n.indo}</p>
+                                                </div>
+                                                <p className="text-xl font-ayat text-white/50 shrink-0" dir="rtl">{n.arab}</p>
+                                            </button>
+                                        );
+                                    })}
+                                    {filtered.length > 5 && (
+                                        <div className="px-4 py-2 text-[10px] text-gray-500 font-bold text-center uppercase tracking-widest">
+                                            {filtered.length} nama ditemukan
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Tip hafalan */}
@@ -245,7 +419,7 @@ export default function AsmaulHusnaPage() {
                                             className={`
                                                 relative flex flex-col items-center justify-center gap-2
                                                 p-4 rounded-3xl border text-center
-                                                bg-gradient-to-br ${ACCENTS[accentIdx]}
+                                                bg-linear-to-br ${ACCENTS[accentIdx]}
                                                 hover:brightness-125 active:scale-95
                                                 transition-all duration-200 group
                                                 ${isMemorized ? "ring ring-white/50" : ""}
@@ -293,6 +467,7 @@ export default function AsmaulHusnaPage() {
                             </p>
                         )}
 
+                        <div className="mb-8" />
                         <Footer />
                     </div>
                 </div>
@@ -300,8 +475,21 @@ export default function AsmaulHusnaPage() {
 
             {/* Modal detail */}
             {selected && (
-                <DetailModal nama={selected} onClose={() => setSelected(null)} />
+                <DetailModal
+                    nama={selected}
+                    onClose={() => setSelected(null)}
+                    isBookmarked={isAsmaulBookmarked(selected.id)}
+                    isBookmarking={bookmarkingId === `asmaul-${selected.id}`}
+                    onToggleBookmark={handleToggleBookmark}
+                />
             )}
+
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                title="Login Diperlukan"
+                description="Silakan login dengan Google untuk menyimpan Asmaul Husna ke bookmark profil Anda."
+            />
         </>
     );
 }

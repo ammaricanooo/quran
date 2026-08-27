@@ -3,13 +3,16 @@
 import { useState, useRef, useEffect, use as useHook } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, List, Search, BookmarkCheck, X } from 'lucide-react';
+import { Play, Pause, ExternalLink, BookOpen, ChevronUp, ArrowLeft, List, Search, BookmarkCheck, BookmarkPlus, X, Share2 } from 'lucide-react';
 import { db, auth, googleProvider } from "@/lib/firebase";
-import { setDoc, doc, onSnapshot } from "firebase/firestore";
+import { setDoc, doc, onSnapshot, arrayUnion, updateDoc, arrayRemove } from "firebase/firestore";
 import { onAuthStateChanged, signInWithPopup, User } from "firebase/auth";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { SkeletonAyatList } from "@/components/Skeleton";
+
+import { BookmarkItem } from "@/lib/bookmark-types";
+import { shareOrCopy } from "@/lib/share-utils";
 
 const LIST_QARI = [
   { id: "01", name: "Abdullah Al-Juhany", img: "/abdullah.webp" },
@@ -85,6 +88,9 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
 
   const [savingId, setSavingId] = useState<number | null>(null);
   const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
+  const [bookmarkingId, setBookmarkingId] = useState<number | null>(null);
+  const [rawBookmarks, setRawBookmarks] = useState<BookmarkItem[]>([]);
+  const [bookmarkedAyats, setBookmarkedAyats] = useState<number[]>([]);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -101,6 +107,13 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         const unsubDoc = onSnapshot(userDoc, (docSnap) => {
           if (docSnap.exists()) {
             setLastReadData(docSnap.data().lastRead);
+            const bm: any[] = docSnap.data().bookmarks ?? [];
+            setRawBookmarks(bm);
+            setBookmarkedAyats(
+              bm
+                .filter(b => b.surahNo === Number(id) || b.id?.startsWith(`surah-${id}-`))
+                .map(b => b.ayatNo || Number(b.id?.split("-")[2]))
+            );
           }
         });
         return () => unsubDoc();
@@ -134,6 +147,15 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         }
       }, { merge: true });
 
+      // get element for animation
+      const el = ayatRefs.current[ayatNo - 1];
+      if (el) {
+        el.classList.add("ring-2", "ring-primary", "scale-[1.01]");
+        setTimeout(() => {
+          el.classList.remove("ring-2", "ring-primary", "scale-[1.01]");
+        }, 1500);
+      }
+      
       // update local state once backend confirmed
       setLastReadData({
         surahNo: data.nomor,
@@ -141,7 +163,6 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         ayatNo: ayatNo,
         updatedAt: new Date()
       });
-
       if (navigator.vibrate) navigator.vibrate(50);
     } catch (err) {
       console.error("Gagal simpan:", err);
@@ -158,6 +179,44 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       return () => clearTimeout(t);
     }
   }, [savingId]);
+
+  const toggleBookmark = async (item: AyatItem) => {
+    if (!auth.currentUser || !data) { setShowLoginModal(true); return; }
+    const isBookmarked = bookmarkedAyats.includes(item.nomorAyat);
+    setBookmarkingId(item.nomorAyat);
+    try {
+      if (isBookmarked) {
+        const existing = rawBookmarks.find(
+          b => (b.surahNo === data.nomor && b.ayatNo === item.nomorAyat) || b.id === `surah-${data.nomor}-${item.nomorAyat}`
+        );
+        if (existing) {
+          await updateDoc(doc(db, "users", auth.currentUser.uid), {
+            bookmarks: arrayRemove(existing),
+          });
+        }
+      } else {
+        const newBookmark: BookmarkItem = {
+          id: `surah-${data.nomor}-${item.nomorAyat}`,
+          category: "surah",
+          title: `${data.namaLatin} : ${item.nomorAyat}`,
+          subtitle: `Surah ke-${data.nomor} Ayat ke-${item.nomorAyat}`,
+          surahNo: data.nomor,
+          surahName: data.namaLatin,
+          ayatNo: item.nomorAyat,
+          teksArab: item.teksArab,
+          teksLatin: item.teksLatin,
+          teksIndonesia: item.teksIndonesia,
+          url: `/surah/${data.nomor}`,
+          savedAt: new Date().toISOString(),
+        };
+        await setDoc(doc(db, "users", auth.currentUser.uid), {
+          bookmarks: arrayUnion(newBookmark),
+        }, { merge: true });
+      }
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (err) { console.error(err); }
+    finally { setBookmarkingId(null); }
+  };
 
   const isAyatInViewport = (index: number): boolean => {
     const element = ayatRefs.current[index];
@@ -295,14 +354,16 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
 
   const handleShare = (item: AyatItem) => {
     if (!data) return;
-    const text = `📖 *${data.namaLatin} Ayat ${item.nomorAyat}*\n\n${item.teksArab}\n\n"${item.teksIndonesia}"\n\nBaca di Al-Qur'an Ku: ${window.location.href}`;
-
-    if (navigator.share) {
-      navigator.share({ title: data.namaLatin, text });
-    } else {
-      navigator.clipboard.writeText(text);
-      alert("Ayat disalin!");
-    }
+    shareOrCopy(
+      {
+        title: `Surah ${data.namaLatin} Ayat ${item.nomorAyat}`,
+        arab: item.teksArab,
+        latin: item.teksLatin,
+        translation: item.teksIndonesia,
+        url: typeof window !== "undefined" ? window.location.href : undefined,
+      },
+      "Ayat berhasil disalin!"
+    );
   };
 
   const handleNextAyat = () => {
@@ -334,7 +395,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       {/* Sidebar skeleton — sama persis dimensi dengan sidebar asli */}
       <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-linear-to-t from-bg-primary to-bg-primary-2 border-r border-white/5 text-white hidden lg:flex flex-col p-6">
         <div className="flex items-center justify-between mb-8">
-          <div className="h-6 w-36 bg-white/8 rounded-xl animate-pulse" />
+          <div className="h-6 w-36 bg-white/10 rounded-xl animate-pulse" />
         </div>
         <div className="h-11 bg-white/5 rounded-3xl animate-pulse mb-4" />
         <div className="flex-1 space-y-2 overflow-hidden">
@@ -348,16 +409,16 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       <Navbar hideSidebar />
 
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
-        <div className="sticky top-0 z-20 px-4 md:px-6 py-4 border-b border-white/5">
+        <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/8 rounded-2xl animate-pulse" />
-              <div className="h-8 w-24 bg-white/8 rounded-xl animate-pulse" />
+              <div className="w-9 h-9 bg-white/10 rounded-xl animate-pulse" />
+              <div className="h-6 w-32 bg-white/10 rounded-xl animate-pulse" />
             </div>
-            <div className="h-8 w-28 bg-white/8 rounded-xl animate-pulse" />
+            <div className="h-6 w-20 bg-white/10 rounded-xl animate-pulse" />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 pb-24 lg:pb-8">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
           <SkeletonAyatList count={5} />
         </div>
       </main>
@@ -416,19 +477,19 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
       <Navbar hideSidebar />
       <main className="h-screen bg-linear-to-t from-bg-primary to-bg-primary-2 text-white flex flex-col overflow-hidden lg:ml-72 transition-all">
         {/* STICKY HEADER AREA */}
-        <div className="sticky top-0 z-20 px-4 md:px-6 py-4 transition-all duration-300">
+        <div className="flex-none px-4 md:px-8 py-4 border-b border-white/5">
           <header className="max-w-5xl mx-auto w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Link href="/" className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition">
-                  <ArrowLeft size={20} />
+                <Link href="/" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
+                  <ArrowLeft size={18} />
                 </Link>
-                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-2 py-2 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
-                  <List size={20} className="text-primary-2" />
+                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-xs font-bold">
+                  <List size={16} className="text-primary-2" />
                   <span className="hidden md:flex">Daftar Surah</span>
                 </button>
-                <div className="">
-                  <h1 className="md:text-3xl font-black  leading-none">
+                <div>
+                  <h1 className="text-xl md:text-2xl font-black leading-none">
                     Surah<span className="text-primary-2"> {data.namaLatin}</span>
                   </h1>
                 </div>
@@ -458,16 +519,16 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
         </div>
 
         {/* SCROLLABLE CONTENT AREA */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6 pb-24 lg:pb-8">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
             {/* Card Info */}
             {/* DATA SINGKAT SURAT (Card Info) */}
-            <div className="relative overflow-hidden bg-linear-to-br from-primary to-secondary p-8 rounded-4xl mb-10 shadow-2xl">
+            <div className="relative overflow-hidden bg-linear-to-br from-primary to-primary-2 p-8 rounded-4xl mb-10 shadow-2xl">
               <div className="relative z-10 flex flex-col items-center text-center">
                 <h2 className="text-4xl font-bold mb-1">{data.namaLatin}</h2>
                 <p className="text-lg opacity-90 mb-4">{data.arti}</p>
-                <div className="h-px w-full max-w-50 bg-white/30 mb-4"></div>
-                <div className="flex gap-4 text-sm font-medium uppercase tracking-widest">
+                <div className="h-px w-full max-w-xs bg-white/30 mb-4"></div>
+                <div className="flex gap-4 text-sm font-bold uppercase tracking-widest">
                   <span>{data.tempatTurun}</span>
                   <span>•</span>
                   <span>{data.jumlahAyat} Ayat</span>
@@ -489,7 +550,7 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                     className={`flex flex-col items-center gap-3 p-4 min-w-35 rounded-3xl transition-all border md:w-full ${selectedQari === qari.id ? "bg-white text-bg-primary border-white" : "bg-white/5 border-white/10"
                       }`}
                   >
-                    <img src={qari.img} alt={qari.name} className="w-16 h-16 object-cover rounded-full shadow-lg" />
+                    <img src={qari.img} alt={qari.name} className="w-14 h-14 object-cover rounded-full shadow-lg" />
                     <span className="text-[10px] font-black uppercase text-center leading-tight">{qari.name}</span>
                   </button>
                 ))}
@@ -525,101 +586,124 @@ export default function SurahPage({ params }: { params: Promise<{ id: string }> 
                     className={`group p-6 rounded-4xl transition-all duration-500 border ${currentAyatIndex === index ? "bg-white/15 border-white/30 shadow-2xl" : "bg-white/5 border-transparent"
                       }`}
                   >
-                    <div className="flex flex-col gap-6">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                        <div className="flex gap-2">
-                          <div className="w-10 h-10 rounded-2xl bg-linear-to-t from-primary to-primary-2 flex items-center justify-center text-xs font-bold shadow-lg shadow-primary/20">
-                            {item.nomorAyat}
-                          </div>
-                          <button onClick={() => playAudio(index)} className="p-2 text-gray-400 hover:text-white transition transform active:scale-90">
-                            {currentAyatIndex === index && isPlaying ? (
-                              <span className="flex gap-1">
-                                <span className="w-1 h-3 bg-white animate-bounce"></span>
-                                <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.2s]"></span>
-                                <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.4s]"></span>
-                              </span>
-                            ) : (
-                              <Play size={20} fill="currentColor" />
-                            )}
-                          </button>
+                    {/* --- ARABIC ROW --- */}
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
+                      <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded-2xl bg-linear-to-t from-primary to-primary-2 flex items-center justify-center text-xs font-bold shadow-lg shadow-primary/20">
+                          {item.nomorAyat}
                         </div>
-                        <p className="text-4xl text-right font-ayat grow leading-18" dir="rtl">
-                          {item.teksArab}
-                        </p>
-                      </div>
-
-                      <div className="space-y-2 border-l-2 border-primary/30 pl-4 py-1">
-                        <p className="font-bold italic tracking-wide">{item.teksLatin}</p>
-                        <p className="text-gray-300 text-sm leading-relaxed">{item.teksIndonesia}</p>
-                      </div>
-
-                      {/* --- ACTION BUTTONS --- */}
-                      <div className="flex items-center gap-2 mt-2 pt-4 border-t border-white/5">
-                        <button
-                          onClick={() => setOpenTafsirIndex(openTafsirIndex === index ? null : index)}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${openTafsirIndex === index
-                            ? "bg-primary text-white"
-                            : "bg-white/5 text-gray-400 hover:bg-white/10"
-                            }`}
-                        >
-                          {openTafsirIndex === index ? <ChevronUp size={14} /> : <BookOpen size={14} />}
-                          {openTafsirIndex === index ? "Tutup Tafsir" : "Lihat Tafsir"}
-                        </button>
-
-                        <button
-                          onClick={() => handleShare(item)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary-2 transition"
-                        >
-                          <ExternalLink size={14} />
-                          <span className="hidden md:flex">Share</span>
-                        </button>
-
-                        <button
-                          onClick={() => saveLastRead(item.nomorAyat)}
-                          disabled={showSaving}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
-                            ? "bg-primary text-white animate-pulse"
-                            : isLastRead
-                              ? "bg-primary text-white scale-95"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-primary"
-                            }`}
-                        >
-                          {showSaving ? (
-                            <>
-                              <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                              <span className="hidden md:flex">Menyimpan...</span>
-                            </>
-                          ) : isLastRead ? (
-                            <>
-                              <BookmarkCheck size={14} fill="currentColor" />
-                              <span className="hidden md:flex">Terakhir Dibaca</span>
-                            </>
+                        <button onClick={() => playAudio(index)} className="p-2 text-gray-400 hover:text-white transition transform active:scale-90">
+                          {currentAyatIndex === index && isPlaying ? (
+                            <span className="flex gap-1">
+                              <span className="w-1 h-3 bg-white animate-bounce"></span>
+                              <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.2s]"></span>
+                              <span className="w-1 h-3 bg-white animate-bounce [animation-delay:-0.4s]"></span>
+                            </span>
                           ) : (
-                            <>
-                              <BookmarkCheck size={14} />
-                              <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
-                            </>
+                            <Play size={20} fill="currentColor" />
                           )}
                         </button>
                       </div>
-
-                      {/* --- TAFSIR SECTION --- */}
-                      {openTafsirIndex === index && currentTafsir && (
-                        <div className="mt-2 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
-                          <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <BookOpen size={14} /> Tafsir Kemenag
-                          </h4>
-                          <p className="text-sm text-gray-300 leading-loose whitespace-pre-line text-justify">
-                            {currentTafsir.teks}
-                          </p>
-                        </div>
-                      )}
+                      <p className="text-4xl text-right font-ayat grow leading-18" dir="rtl">
+                        {item.teksArab}
+                      </p>
                     </div>
+
+                    <p className="border-l-2 border-primary/30 pl-4 text-sm font-bold italic leading-relaxed text-primary-2 mb-3">
+                      {item.teksLatin}
+                    </p>
+                    <p className="border-l-2 border-white/15 pl-4 text-sm leading-relaxed text-gray-300">
+                      {item.teksIndonesia}
+                    </p>
+
+                    {/* --- ACTION BUTTONS --- */}
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                      <button
+                        onClick={() => setOpenTafsirIndex(openTafsirIndex === index ? null : index)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${openTafsirIndex === index
+                          ? "bg-primary text-white"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                          }`}
+                      >
+                        {openTafsirIndex === index ? <ChevronUp size={14} /> : <BookOpen size={14} />}
+                        {openTafsirIndex === index ? "Tutup Tafsir" : "Lihat Tafsir"}
+                      </button>
+
+                      <button
+                        onClick={() => handleShare(item)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition"
+                      >
+                        <Share2 size={14} />
+                        <span className="hidden md:flex">Bagikan</span>
+                      </button>
+
+                      <button
+                        onClick={() => toggleBookmark(item)}
+                        disabled={bookmarkingId === item.nomorAyat}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                          bookmarkedAyats.includes(item.nomorAyat)
+                            ? "bg-primary/20 text-primary-2 border border-primary/30 shadow-md"
+                            : bookmarkingId === item.nomorAyat
+                              ? "bg-white/5 text-gray-400 animate-pulse"
+                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                        }`}
+                      >
+                        <BookmarkPlus size={14} fill={bookmarkedAyats.includes(item.nomorAyat) ? "currentColor" : "none"} />
+                        <span className="hidden md:flex">
+                          {bookmarkedAyats.includes(item.nomorAyat)
+                            ? "Tersimpan"
+                            : bookmarkingId === item.nomorAyat
+                            ? "Menyimpan..."
+                            : "Simpan"}
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => saveLastRead(item.nomorAyat)}
+                        disabled={showSaving}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${showSaving
+                          ? "bg-primary text-white animate-pulse"
+                          : isLastRead
+                            ? "bg-primary text-white scale-95"
+                            : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                          }`}
+                      >
+                        {showSaving ? (
+                          <>
+                            <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                            <span className="hidden md:flex">Menyimpan...</span>
+                          </>
+                        ) : isLastRead ? (
+                          <>
+                            <BookmarkCheck size={14} fill="currentColor" />
+                            <span className="hidden md:flex">Terakhir Dibaca</span>
+                          </>
+                        ) : (
+                          <>
+                            <BookmarkCheck size={14} />
+                            <span className="hidden md:flex">Tandai Terakhir Dibaca</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* --- TAFSIR SECTION --- */}
+                    {openTafsirIndex === index && currentTafsir && (
+                      <div className="mt-3 p-5 bg-black/30 rounded-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                        <h4 className="text-xs font-bold text-primary-2 uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <BookOpen size={14} /> Tafsir Kemenag
+                        </h4>
+                        <p className="text-sm text-gray-300 leading-loose whitespace-pre-line text-justify">
+                          {currentTafsir.teks}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 );
               })}
-              <Footer />
             </div>
+            <div className="mb-8" />
+            <Footer />
           </div>
         </div>
 

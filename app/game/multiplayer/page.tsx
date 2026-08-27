@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Users, Plus, LogIn, Swords } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import CreateRoom from "./CreateRoom";
 import JoinRoom from "./JoinRoom";
 
@@ -24,7 +25,7 @@ export default function MultiplayerPage() {
                         <Link href="/game" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                             <ArrowLeft size={18} />
                         </Link>
-                        <h1 className="text-xl font-black">
+                        <h1 className="text-xl md:text-2xl font-black">
                             Kuis <span className="text-rose-400">Multiplayer</span>
                         </h1>
                     </header>
@@ -77,7 +78,7 @@ export default function MultiplayerPage() {
                         </div>
 
                         {/* Rules */}
-                        <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-2">
+                        <div className="bg-white/5 border border-white/5 rounded-4xl p-6 space-y-2">
                             <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Cara Bermain</p>
                             <ul className="text-sm text-gray-400 space-y-1.5">
                                 <li className="flex items-start gap-2"><span className="text-primary-2 font-black shrink-0">1.</span> Host buat room &amp; pilih mode kuis.</li>
@@ -88,6 +89,9 @@ export default function MultiplayerPage() {
                                 <li className="flex items-start gap-2"><span className="text-primary-2 font-black shrink-0">6.</span> Papan peringkat tampil setelah semua soal selesai.</li>
                             </ul>
                         </div>
+
+                        <div className="mb-8" />
+                        <Footer />
                     </div>
                 </div>
             </main>

@@ -147,14 +147,14 @@ export default function TebakSurahPage() {
                             <Link href="/game" className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                                 <ArrowLeft size={18} />
                             </Link>
-                            <h1 className="text-xl font-black">Tebak <span className="text-amber-400">Surah</span></h1>
+                            <h1 className="text-xl md:text-2xl font-black">Tebak <span className="text-amber-400">Surah</span></h1>
                         </div>
                         {phase === "playing" && (
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
                                     <Trophy size={14} /> {totalScore.toLocaleString()}
                                 </div>
-                                <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-xs font-black text-gray-400">
+                                <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/5 text-xs font-black text-gray-400">
                                     {current + 1}/{TOTAL}
                                 </div>
                             </div>

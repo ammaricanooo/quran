@@ -133,7 +133,7 @@ const handleCreate = async () => {
                         <button onClick={onBack} className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-xl transition">
                             <ArrowLeft size={18} />
                         </button>
-                        <h1 className="text-xl font-black">Buat <span className="text-primary-2">Room</span></h1>
+                        <h1 className="text-xl md:text-2xl font-black">Buat <span className="text-primary-2">Room</span></h1>
                     </header>
                 </div>
 
@@ -184,7 +184,7 @@ const handleCreate = async () => {
                                         className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                                             mode === m.id
                                                 ? `bg-white/10 ${m.color}`
-                                                : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/8"
+                                                : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10"
                                         }`}
                                     >
                                         <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${mode === m.id ? "border-current" : "border-gray-600"}`}>
@@ -208,7 +208,7 @@ const handleCreate = async () => {
                                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                                         sourceType === "random"
                                             ? "bg-white/10 border-primary/40 text-primary-2"
-                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/8"
+                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10"
                                     }`}
                                 >
                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${sourceType === "random" ? "border-current" : "border-gray-600"}`}>
@@ -225,7 +225,7 @@ const handleCreate = async () => {
                                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
                                         sourceType === "juz"
                                             ? "bg-white/10 border-violet-400/40 text-violet-400"
-                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/8"
+                                            : "bg-white/5 border-white/5 text-gray-400 hover:bg-white/10"
                                     }`}
                                 >
                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${sourceType === "juz" ? "border-current" : "border-gray-600"}`}>
