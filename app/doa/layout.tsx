@@ -12,8 +12,13 @@ export const metadata: Metadata = {
     "doa perjalanan",
     "doa pagi",
     "doa sore",
-    "doa lengkap"
+    "doa lengkap",
+    "Al-Qur'an Ku",
+    "Ammar Abdul Malik"
   ],
+  authors: [{ name: "Ammar Abdul Malik", url: "https://linkedin.com/in/ammaricano" }],
+  creator: "Ammar Abdul Malik",
+  publisher: "Ammar Abdul Malik",
   alternates: {
     canonical: "https://quran.ammaricano.my.id/doa"
   },
@@ -21,7 +26,8 @@ export const metadata: Metadata = {
     title: "Doa Harian Islam Lengkap | Al-Qur'an Ku",
     description: "Kumpulan doa harian Islam lengkap dengan tulisan Arab, Latin, dan terjemahan Indonesia.",
     url: "https://quran.ammaricano.my.id/doa",
-    type: "website"
+    type: "website",
+    siteName: "Al-Qur'an Ku"
   }
 };
 

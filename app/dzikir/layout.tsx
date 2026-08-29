@@ -11,8 +11,13 @@ export const metadata: Metadata = {
     "dzikir setelah sholat",
     "bacaan dzikir",
     "dzikir lengkap",
-    "dzikir islam"
+    "dzikir islam",
+    "Al-Qur'an Ku",
+    "Ammar Abdul Malik"
   ],
+  authors: [{ name: "Ammar Abdul Malik", url: "https://linkedin.com/in/ammaricano" }],
+  creator: "Ammar Abdul Malik",
+  publisher: "Ammar Abdul Malik",
   alternates: {
     canonical: "https://quran.ammaricano.my.id/dzikir"
   },
@@ -20,7 +25,8 @@ export const metadata: Metadata = {
     title: "Dzikir Pagi Petang & Wirid Lengkap | Al-Qur'an Ku",
     description: "Bacaan dzikir pagi dan petang lengkap dari Al-Qur'an dan Sunnah dengan terjemahan.",
     url: "https://quran.ammaricano.my.id/dzikir",
-    type: "website"
+    type: "website",
+    siteName: "Al-Qur'an Ku"
   }
 };
 

@@ -22,10 +22,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         `Baca ${surah.namaLatin}`,
         `Terjemahan ${surah.namaLatin}`,
         `Tafsir ${surah.namaLatin}`,
+        `Audio Murottal ${surah.namaLatin}`,
         "Al-Qur'an Indonesia",
         "Quran online",
-        `Surah ${surah.tempatTurun}`
+        `Surah ${surah.tempatTurun}`,
+        "Al-Qur'an Ku",
+        "Ammar Abdul Malik"
       ],
+      authors: [{ name: "Ammar Abdul Malik", url: "https://linkedin.com/in/ammaricano" }],
+      creator: "Ammar Abdul Malik",
+      publisher: "Ammar Abdul Malik",
       alternates: {
         canonical: `https://quran.ammaricano.my.id/surah/${id}`
       },
@@ -34,12 +40,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         description,
         url: `https://quran.ammaricano.my.id/surah/${id}`,
         type: "article",
-        locale: "id_ID"
+        locale: "id_ID",
+        siteName: "Al-Qur'an Ku"
       },
       twitter: {
         card: "summary_large_image",
         title,
-        description
+        description,
+        creator: "@ammaricano"
       }
     };
   } catch (error) {

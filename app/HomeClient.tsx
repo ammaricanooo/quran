@@ -6,7 +6,7 @@ import Image from "next/image";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, onAuthStateChanged, User } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
-import { Search, LogIn, LogOut, Bookmark, BookOpen, X } from "lucide-react";
+import { Search, LogIn, LogOut, Bookmark, BookOpen, X, HelpCircle, ChevronDown } from "lucide-react";
 import { Surah } from "./page";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
@@ -240,6 +240,46 @@ export default function HomeClient({ surahs }: { surahs: Surah[] }) {
                         </Link>
                     ))}
                 </div>
+
+                {/* ── FAQ & SEO CONTENT SECTION ── */}
+                <section className="pt-8 pb-4 space-y-6">
+                    <div className="flex items-center gap-2">
+                        <HelpCircle className="text-primary-2" size={22} />
+                        <h2 className="text-xl md:text-2xl font-black text-white">Pertanyaan Umum (FAQ)</h2>
+                    </div>
+
+                    <div className="space-y-3">
+                        <details className="group bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-200 open:bg-white/10">
+                            <summary className="font-bold text-sm md:text-base text-white cursor-pointer flex justify-between items-center list-none select-none">
+                                <span>Apa itu Al-Qur&apos;an Ku dan siapa pengembangnya?</span>
+                                <ChevronDown className="text-gray-400 group-open:rotate-180 transition-transform duration-200 shrink-0" size={18} />
+                            </summary>
+                            <p className="mt-3 text-xs md:text-sm text-gray-300 leading-relaxed text-justify">
+                                <strong>Al-Qur&apos;an Ku</strong> adalah aplikasi web Al-Qur&apos;an digital inovatif yang dikembangkan oleh <strong>Ammar Abdul Malik</strong> (Ammaricano). Aplikasi ini dirancang untuk memudahkan masyarakat muslim membaca, mentadabburi, dan menghafal Al-Qur&apos;an secara online dengan fitur terlengkap di Indonesia.
+                            </p>
+                        </details>
+
+                        <details className="group bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-200 open:bg-white/10">
+                            <summary className="font-bold text-sm md:text-base text-white cursor-pointer flex justify-between items-center list-none select-none">
+                                <span>Fitur apa saja yang tersedia di Al-Qur&apos;an Ku?</span>
+                                <ChevronDown className="text-gray-400 group-open:rotate-180 transition-transform duration-200 shrink-0" size={18} />
+                            </summary>
+                            <p className="mt-3 text-xs md:text-sm text-gray-300 leading-relaxed text-justify">
+                                Al-Qur&apos;an Ku menyediakan bacaan 114 Surah, 30 Juz lengkap dengan teks Arab standar Kemenag, transliterasi Latin, terjemahan Indonesia, audio murottal berbagai qari, jadwal sholat otomatis GPS, kumpulan hadits shahih 9 imam, doa harian, dzikir pagi petang, Asmaul Husna, tahlil, maulid nabi, dan kuis cerdas cermat Qur&apos;an interaktif.
+                            </p>
+                        </details>
+
+                        <details className="group bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-200 open:bg-white/10">
+                            <summary className="font-bold text-sm md:text-base text-white cursor-pointer flex justify-between items-center list-none select-none">
+                                <span>Apakah aplikasi Al-Qur&apos;an Ku gratis digunakan?</span>
+                                <ChevronDown className="text-gray-400 group-open:rotate-180 transition-transform duration-200 shrink-0" size={18} />
+                            </summary>
+                            <p className="mt-3 text-xs md:text-sm text-gray-300 leading-relaxed text-justify">
+                                Ya, 100% gratis tanpa biaya berlangganan dan dapat diakses dari browser maupun diinstal sebagai Progressive Web App (PWA) di perangkat Android, iOS, Windows, atau Mac.
+                            </p>
+                        </details>
+                    </div>
+                </section>
 
                         {/* Empty State */}
                         {filteredSurahs.length === 0 && (

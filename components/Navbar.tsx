@@ -19,6 +19,7 @@ import {
   BookHeart,
   Newspaper,
   User,
+  Info,
 } from "lucide-react";
 
 const menuItems = [
@@ -35,6 +36,7 @@ const menuItems = [
   { name: "Artikel",      icon: <Newspaper size={20} />,      href: "/articles" },
   { name: "Kuis",         icon: <Gamepad2 size={20} />,     href: "/game" },
   { name: "Profil",       icon: <User size={20} />,         href: "/profil" },
+  { name: "Tentang",      icon: <Info size={20} />,         href: "/tentang" },
 ];
 
 // Bottom nav items (5 items max for mobile) — menu utama yang selalu terlihat
@@ -57,6 +59,7 @@ const extraMenuItems = [
   { name: "Maulid",       icon: <BookHeart size={22} />,   href: "/maulid",      accent: "from-cyan-500/20 to-cyan-600/5 border-cyan-500/20",       iconColor: "text-cyan-400" },
   { name: "Artikel",      icon: <Newspaper size={22} />,    href: "/articles",    accent: "from-sky-500/20 to-sky-600/5 border-sky-500/20",         iconColor: "text-sky-400" },
   { name: "Kuis",         icon: <Gamepad2 size={22} />,  href: "/game",         accent: "from-violet-500/20 to-violet-600/5 border-violet-500/20", iconColor: "text-violet-400" },
+  { name: "Tentang",      icon: <Info size={22} />,      href: "/tentang",      accent: "from-indigo-500/20 to-indigo-600/5 border-indigo-500/20", iconColor: "text-indigo-400" },
 ];
 
 interface NavbarProps {

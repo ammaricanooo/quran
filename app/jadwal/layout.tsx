@@ -13,8 +13,13 @@ export const metadata: Metadata = {
     "waktu dzuhur",
     "waktu ashar",
     "waktu maghrib",
-    "waktu isya"
+    "waktu isya",
+    "Al-Qur'an Ku",
+    "Ammar Abdul Malik"
   ],
+  authors: [{ name: "Ammar Abdul Malik", url: "https://linkedin.com/in/ammaricano" }],
+  creator: "Ammar Abdul Malik",
+  publisher: "Ammar Abdul Malik",
   alternates: {
     canonical: "https://quran.ammaricano.my.id/jadwal"
   },
@@ -22,7 +27,8 @@ export const metadata: Metadata = {
     title: "Jadwal Sholat Hari Ini | Al-Qur'an Ku",
     description: "Cek jadwal sholat hari ini untuk wilayah Anda. Waktu shalat akurat berdasarkan lokasi.",
     url: "https://quran.ammaricano.my.id/jadwal",
-    type: "website"
+    type: "website",
+    siteName: "Al-Qur'an Ku"
   }
 };
 

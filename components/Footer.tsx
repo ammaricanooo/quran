@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Linkedin, Gamepad2, Shield, ScrollText, AtSign, BookHeart, Newspaper, Sparkles, User } from "lucide-react";
+import { Compass, Clock, BookOpen, Layers, Wind, Quote, Github, Instagram, Linkedin, Gamepad2, Shield, ScrollText, AtSign, BookHeart, Newspaper, Sparkles, User, Info, Heart } from "lucide-react";
 
 export default function Footer() {
     const menuItems = [
@@ -15,17 +15,18 @@ export default function Footer() {
         { name: "Artikel", icon: <Newspaper size={18} />, href: "/articles" },
         { name: "Kuis", icon: <Gamepad2 size={18} />, href: "/game" },
         { name: "Profil", icon: <User size={18} />, href: "/profil" },
+        { name: "Tentang", icon: <Info size={18} />, href: "/tentang" },
     ];
 
     const socialLinks = [
-        { href: "https://linkedin.com/in/ammaricano", icon: <Linkedin size={18} />, label: "LinkedIn" },
-        { href: "https://github.com/ammaricanooo", icon: <Github size={18} />, label: "Github" },
-        { href: "https://instagram.com/ammaricano", icon: <Instagram size={18} />, label: "Instagram" },
-        { href: "https://threads.com/@ammaricano", icon: <AtSign size={18} />, label: "Threads" },
+        { href: "https://linkedin.com/in/ammaricano", icon: <Linkedin size={18} />, label: "LinkedIn Ammar Abdul Malik" },
+        { href: "https://github.com/ammaricanooo", icon: <Github size={18} />, label: "GitHub Ammar Abdul Malik" },
+        { href: "https://instagram.com/ammaricano", icon: <Instagram size={18} />, label: "Instagram Ammar Abdul Malik" },
+        { href: "https://threads.com/@ammaricano", icon: <AtSign size={18} />, label: "Threads Ammar Abdul Malik" },
     ];
 
     return (
-        <footer className="py-8 border-t border-white/10">
+        <footer className="py-8 border-t border-white/10" itemScope itemType="https://schema.org/WPFooter">
             <div className="mx-auto w-full py-6 lg:py-8">
                 <div className="md:flex md:justify-between gap-8">
                     <div className="mb-6 md:mb-0 md:max-w-sm">
@@ -33,12 +34,17 @@ export default function Footer() {
                             <span className="text-white self-center text-2xl font-black whitespace-nowrap">Al-Qur&apos;an Ku</span>
                         </Link>
                         <p className="text-gray-400 mt-4 text-sm leading-relaxed text-justify">
-                            Aplikasi Al-Qur&apos;an digital yang menyediakan berbagai fitur untuk memudahkan pengguna dalam membaca, memahami, dan menghafal Al-Qur&apos;an. Dengan antarmuka yang user-friendly dan fitur-fitur seperti pencarian ayat, jadwal sholat, dan doa harian, aplikasi ini bertujuan untuk membantu pengguna dalam meningkatkan pemahaman dan kecintaan mereka terhadap Al-Qur&apos;an.
+                            Aplikasi Al-Qur&apos;an digital Indonesia terlengkap karya <strong>Ammar Abdul Malik</strong>. Menyediakan bacaan 114 Surah, 30 Juz, terjemahan resmi, audio murottal, jadwal sholat, doa harian, hadits shahih, asmaul husna, dan dzikir secara gratis untuk seluruh umat muslim.
                         </p>
+                        <div className="mt-4">
+                            <Link href="/tentang" className="text-xs font-bold text-primary-2 hover:underline inline-flex items-center gap-1.5">
+                                <Info size={14} /> Tentang Pengembang (Ammar Abdul Malik) &rarr;
+                            </Link>
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
                         <div>
-                            <h2 className="mb-4 text-xs font-black text-white uppercase tracking-widest">Fitur</h2>
+                            <h2 className="mb-4 text-xs font-black text-white uppercase tracking-widest">Fitur Utama</h2>
                             <ul className="text-gray-400 font-medium text-sm space-y-3">
                                 {menuItems.slice(0, 6).map((item) => (
                                     <li key={item.name}>
@@ -74,10 +80,10 @@ export default function Footer() {
                                     </li>
                                 ))}
                                 <li className="pt-2 border-t border-white/5">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Ikuti Kami</span>
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Sosial Pengembang</span>
                                     <div className="flex items-center gap-3">
                                         {socialLinks.map((s) => (
-                                            <a key={s.label} href={s.href} aria-label={s.label} className="text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg bg-white/5 hover:bg-white/10" target="_blank" rel="noopener noreferrer">
+                                            <a key={s.label} href={s.href} aria-label={s.label} title={s.label} className="text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg bg-white/5 hover:bg-white/10" target="_blank" rel="noopener noreferrer">
                                                 {s.icon}
                                             </a>
                                         ))}
@@ -86,8 +92,14 @@ export default function Footer() {
                             </ul>
                         </div>
                         <div>
-                            <h2 className="mb-4 text-xs font-black text-white uppercase tracking-widest">Legal</h2>
+                            <h2 className="mb-4 text-xs font-black text-white uppercase tracking-widest">Tentang &amp; Legal</h2>
                             <ul className="text-gray-400 font-medium text-sm space-y-3">
+                                <li>
+                                    <Link href="/tentang" className="hover:text-white transition-colors flex items-center gap-2">
+                                        <Info size={18} />
+                                        Tentang Pengembang
+                                    </Link>
+                                </li>
                                 <li>
                                     <Link href="/privacy-policy" className="hover:text-white transition-colors flex items-center gap-2">
                                         <Shield size={18} />
@@ -106,7 +118,8 @@ export default function Footer() {
                 </div>
                 <hr className="my-6 border-white/10 sm:mx-auto lg:my-8" />
                 <div className="sm:flex sm:items-center sm:justify-between text-xs text-gray-500">
-                    <span>Made with ❤️ by Ammar Abdul Malik. All Rights Reserved.</span>
+                    <span>Dibuat dengan <Heart size={12} className="inline text-red-500 fill-red-500 mx-0.5" /> oleh <a href="https://linkedin.com/in/ammaricano" target="_blank" rel="noopener noreferrer" className="text-gray-300 font-semibold hover:underline">Ammar Abdul Malik</a> (Ammaricano). Hak Cipta Dilindungi.</span>
+                    <span className="mt-2 sm:mt-0 text-gray-500">Al-Qur&apos;an Ku &bull; Digital Quran Platform</span>
                 </div>
             </div>
         </footer>
