@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -216,7 +217,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Al-Qur'an Ku" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#2563eb" />
+        <meta name="msapplication-TileColor" content="#2563eb" />
         <meta name="author" content="Ammar Abdul Malik" />
+        <link rel="apple-touch-icon" href="/app/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/app/favicon-96x96.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -228,6 +232,7 @@ export default function RootLayout({
         className={`${plusJakartaSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         {children}
+        <PWAInstallPrompt />
       </body>
     </html>
   );

@@ -3,20 +3,33 @@
   "short_name": "Al-Qur'an Ku",
   "description": "Aplikasi Al-Qur'an digital dengan fitur lengkap untuk memudahkan pembelajaran dan pemahaman Al-Qur'an",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "lang": "id-ID",
+  "dir": "ltr",
+  "categories": ["education", "books", "religion"],
   "icons": [
     {
-      "src": "/ic_kaligrafi.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/app/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "scope": "/",
-  "categories": ["education", "books", "religion"],
-  "dir": "ltr",
-  "lang": "id-ID",
-  "orientation": "portrait",
   "prefer_related_applications": false
 }
