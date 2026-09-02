@@ -18,7 +18,7 @@ import { shareOrCopy } from "@/lib/share-utils";
 const LIMIT = 20;
 
 interface KitabInfo { name: string; slug: string; total: number; }
-interface HaditsItem { number: number; arab: string; id: string; judul: string; }
+interface HaditsItem { number: number; arab: string; id: string; judul?: string; }
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 function HaditsSkeleton() {
@@ -79,6 +79,7 @@ function Pagination({ page, pages, onChange }: {
                 onClick={() => onChange(page - 1)}
                 disabled={page <= 1}
                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition"
+                aria-label="Halaman Sebelumnya"
             >
                 <ChevronLeft size={16} />
             </button>
@@ -103,6 +104,7 @@ function Pagination({ page, pages, onChange }: {
                 onClick={() => onChange(page + 1)}
                 disabled={page >= pages}
                 className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition"
+                aria-label="Halaman Berikutnya"
             >
                 <ChevronRight size={16} />
             </button>
@@ -165,13 +167,17 @@ export default function HaditsPage() {
         fetch("/api/hadits/index")
             .then(r => r.json())
             .then((data: KitabInfo[]) => {
-                // Tambahkan Arbain ke daftar (dari dataset lokal)
-                const arbain: KitabInfo = { name: "Arbain Nawawi", slug: "arbain", total: 42 };
-                const withArbain = [arbain, ...data];
-                setKitabList(withArbain);
+                if (Array.isArray(data) && data.length > 0) {
+                    setKitabList(data);
+                } else {
+                    setKitabList([{ name: "Arbain Nawawi", slug: "arbain", total: 42 }]);
+                }
                 setKitabLoading(false);
             })
-            .catch(() => setKitabLoading(false));
+            .catch(() => {
+                setKitabList([{ name: "Arbain Nawawi", slug: "arbain", total: 42 }]);
+                setKitabLoading(false);
+            });
     }, []);
 
     // Fetch hadits saat kitab/page/search berubah
@@ -204,7 +210,7 @@ export default function HaditsPage() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setPage(1);
-            setSearchQuery(searchInput);
+            setSearchQuery(searchInput.trim());
         }, 300);
         return () => clearTimeout(timer);
     }, [searchInput]);
@@ -215,6 +221,7 @@ export default function HaditsPage() {
         setPage(1);
         setSearchQuery("");
         setSearchInput("");
+        setShowSuggestions(false);
     };
 
     const isHaditsBookmarked = (itemNumber: number) => {
@@ -240,11 +247,12 @@ export default function HaditsPage() {
                     bookmarks: arrayRemove(existing),
                 });
             } else {
+                const itemTitle = item.judul || `${kitabName} No. ${item.number}`;
                 const newBookmark: BookmarkItem = {
                     id: key,
                     category: "hadits",
                     title: `${kitabName} No. ${item.number}`,
-                    subtitle: item.judul,
+                    subtitle: itemTitle,
                     teksArab: item.arab,
                     teksIndonesia: item.id,
                     url: `/hadits`,
@@ -265,9 +273,10 @@ export default function HaditsPage() {
     };
 
     const handleShare = (item: HaditsItem) => {
+        const itemTitle = item.judul || `${kitabName} No. ${item.number}`;
         shareOrCopy(
             {
-                title: item.judul,
+                title: itemTitle,
                 arab: item.arab,
                 translation: item.id,
                 extra: `${kitabName} No. ${item.number}`,
@@ -333,7 +342,7 @@ export default function HaditsPage() {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary-2 transition-colors z-10" size={18} />
                                 <input
                                     type="text"
-                                    placeholder={`Cari hadits di ${kitabName}...`}
+                                    placeholder={`Cari nomor, tema, kata arab, atau teks terjemahan di ${kitabName}...`}
                                     className="w-full bg-white/5 border border-white/5 rounded-3xl py-3.5 pl-12 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all text-sm"
                                     value={searchInput}
                                     onChange={(e) => {
@@ -348,8 +357,10 @@ export default function HaditsPage() {
                                             setSearchInput("");
                                             setSearchQuery("");
                                             setShowSuggestions(false);
+                                            setPage(1);
                                         }}
                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+                                        aria-label="Bersihkan pencarian"
                                     >
                                         <X size={16} />
                                     </button>
@@ -359,27 +370,31 @@ export default function HaditsPage() {
                             {/* Dropdown Saran */}
                             {showSuggestions && searchInput.trim().length > 0 && haditsList.length > 0 && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-bg-primary-2 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50">
-                                    {haditsList.slice(0, 5).map((item) => (
-                                        <button
-                                            key={`${activeKitab}-${item.number}`}
-                                            onMouseDown={() => {
-                                                setSearchInput(item.judul);
-                                                setSearchQuery(item.judul);
-                                                setShowSuggestions(false);
-                                            }}
-                                            className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0 text-left"
-                                        >
-                                            <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/20 flex items-center justify-center shrink-0">
-                                                <span className="text-xs font-black text-primary-2">{item.number}</span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold truncate">{item.judul}</p>
-                                                <p className="text-[10px] text-gray-500 truncate">{item.id}</p>
-                                            </div>
-                                        </button>
-                                    ))}
+                                    {haditsList.slice(0, 5).map((item) => {
+                                        const displayTitle = item.judul || `${kitabName} No. ${item.number}`;
+                                        return (
+                                            <button
+                                                key={`${activeKitab}-${item.number}`}
+                                                onMouseDown={() => {
+                                                    const val = item.judul ? item.judul : String(item.number);
+                                                    setSearchInput(val);
+                                                    setSearchQuery(val);
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="flex items-center gap-3 w-full px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0 text-left"
+                                            >
+                                                <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/20 flex items-center justify-center shrink-0">
+                                                    <span className="text-xs font-black text-primary-2">{item.number}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-bold truncate">{displayTitle}</p>
+                                                    <p className="text-[10px] text-gray-500 truncate">{item.id}</p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                     <div className="px-4 py-2 text-[10px] text-gray-500 font-bold text-center uppercase tracking-widest">
-                                        {totalHadits} hadits ditemukan
+                                        {totalHadits.toLocaleString()} hadits ditemukan
                                     </div>
                                 </div>
                             )}
@@ -388,9 +403,9 @@ export default function HaditsPage() {
                         {/* ── INFO BAR ── */}
                         {searchQuery && (
                             <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>Hasil pencarian: <strong className="text-white">&quot;{searchQuery}&quot;</strong> — {totalHadits} ditemukan</span>
+                                <span>Hasil pencarian: <strong className="text-white">&quot;{searchQuery}&quot;</strong> — {totalHadits.toLocaleString()} ditemukan</span>
                                 <button
-                                    onClick={() => { setSearchQuery(""); setSearchInput(""); setPage(1); }}
+                                    onClick={() => { setSearchQuery(""); setSearchInput(""); setShowSuggestions(false); setPage(1); }}
                                     className="text-rose-400 hover:text-rose-300 font-bold transition"
                                 >
                                     Hapus
@@ -406,6 +421,8 @@ export default function HaditsPage() {
                                 {haditsList.map((item) => {
                                     const key = `hadits-${activeKitab}-${item.number}`;
                                     const bookmarked = isHaditsBookmarked(item.number);
+                                    const cardTitle = item.judul || `${kitabName} No. ${item.number}`;
+
                                     return (
                                         <div
                                             key={key}
@@ -416,7 +433,7 @@ export default function HaditsPage() {
                                                 <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary to-primary-2 flex items-center justify-center text-xs font-black shadow-lg shadow-primary/20 shrink-0">
                                                     {item.number}
                                                 </div>
-                                                <h2 className="text-sm md:text-base font-bold text-primary-2 flex-1 leading-snug">{item.judul}</h2>
+                                                <h2 className="text-sm md:text-base font-bold text-primary-2 flex-1 leading-snug">{cardTitle}</h2>
                                             </div>
 
                                             {/* Arab */}

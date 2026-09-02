@@ -36,11 +36,6 @@ export default function Footer() {
                         <p className="text-gray-400 mt-4 text-sm leading-relaxed text-justify">
                             Aplikasi Al-Qur&apos;an digital Indonesia terlengkap karya <strong>Ammar Abdul Malik</strong>. Menyediakan bacaan 114 Surah, 30 Juz, terjemahan resmi, audio murottal, jadwal sholat, doa harian, hadits shahih, asmaul husna, dan dzikir secara gratis untuk seluruh umat muslim.
                         </p>
-                        <div className="mt-4">
-                            <Link href="/tentang" className="text-xs font-bold text-primary-2 hover:underline inline-flex items-center gap-1.5">
-                                <Info size={14} /> Tentang Pengembang (Ammar Abdul Malik) &rarr;
-                            </Link>
-                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
                         <div>
@@ -80,7 +75,7 @@ export default function Footer() {
                                     </li>
                                 ))}
                                 <li className="pt-2 border-t border-white/5">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Sosial Pengembang</span>
+                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Kontak Pengembang</span>
                                     <div className="flex items-center gap-3">
                                         {socialLinks.map((s) => (
                                             <a key={s.label} href={s.href} aria-label={s.label} title={s.label} className="text-gray-400 hover:text-white transition-colors p-1.5 rounded-lg bg-white/5 hover:bg-white/10" target="_blank" rel="noopener noreferrer">
@@ -94,12 +89,6 @@ export default function Footer() {
                         <div>
                             <h2 className="mb-4 text-xs font-black text-white uppercase tracking-widest">Tentang &amp; Legal</h2>
                             <ul className="text-gray-400 font-medium text-sm space-y-3">
-                                <li>
-                                    <Link href="/tentang" className="hover:text-white transition-colors flex items-center gap-2">
-                                        <Info size={18} />
-                                        Tentang Pengembang
-                                    </Link>
-                                </li>
                                 <li>
                                     <Link href="/privacy-policy" className="hover:text-white transition-colors flex items-center gap-2">
                                         <Shield size={18} />
